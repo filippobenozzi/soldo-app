@@ -23,6 +23,16 @@
       "screenshots": [],
       "versions": [
         {
+          "version": "1.2.0",
+          "buildVersion": "5",
+          "date": "2026-08-28T15:44:21Z",
+          "localizedDescription": "Soldo 1.2.0",
+          "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.2.0/Soldo.ipa",
+          "size": 910230,
+          "sha256": "51a5119f6514f855302c3775c100ba2f9e3a536149dab67ad1bed30f4e3aa948",
+          "minOSVersion": "17.0"
+        },
+        {
           "version": "1.1.0",
           "buildVersion": "4",
           "date": "2026-08-28T13:02:19Z",
@@ -53,11 +63,11 @@
           "NSPhotoLibraryUsageDescription": "Legge uno scontrino da una foto già scattata."
         }
       },
-      "version": "1.1.0",
-      "versionDate": "2026-08-28T13:02:19Z",
-      "versionDescription": "Soldo 1.1.0",
-      "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.1.0/Soldo.ipa",
-      "size": 832120
+      "version": "1.2.0",
+      "versionDate": "2026-08-28T15:44:21Z",
+      "versionDescription": "Soldo 1.2.0",
+      "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.2.0/Soldo.ipa",
+      "size": 910230
     }
   ],
   "news": []
