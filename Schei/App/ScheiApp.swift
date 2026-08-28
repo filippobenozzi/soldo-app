@@ -59,14 +59,27 @@ final class AppRouter {
 
     enum Tab: Hashable { case home, history, insights, settings }
 
+    /// Which screen is on top. A single binding, because two `.sheet` modifiers on
+    /// the same view do not both work.
+    struct Presentation: Identifiable {
+        enum Kind { case addExpense, quickEntry }
+
+        let id = UUID()
+        var kind: Kind
+        /// Prefilled values handed over by a widget tap or a Shortcuts action.
+        var draft: ExpenseDraft?
+    }
+
     var selectedTab: Tab = .home
-    var isPresentingAddExpense = false
-    /// Prefilled values handed over by a widget tap or a Shortcuts action.
-    var addExpenseDraft: ExpenseDraft?
+    var presentation: Presentation?
 
     func presentAddExpense(draft: ExpenseDraft? = nil) {
-        addExpenseDraft = draft
-        isPresentingAddExpense = true
+        presentation = Presentation(kind: .addExpense, draft: draft)
+    }
+
+    /// The compact keypad sheet, opened by the Control Centre button.
+    func presentQuickEntry(draft: ExpenseDraft? = nil) {
+        presentation = Presentation(kind: .quickEntry, draft: draft)
     }
 
     func handle(url: URL, context: ModelContext) {
@@ -74,6 +87,8 @@ final class AppRouter {
         guard ["schei", "soldo"].contains(url.scheme?.lowercased() ?? "") else { return }
 
         switch url.host()?.lowercased() {
+        case "quick":
+            presentQuickEntry()
         case "add", "new", "quickadd":
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
             var draft = ExpenseDraft()

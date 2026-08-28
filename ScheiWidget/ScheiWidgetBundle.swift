@@ -8,7 +8,6 @@ struct ScheiWidgetBundle: WidgetBundle {
         RecentExpensesWidget()
         if #available(iOS 18.0, *) {
             QuickAddControl()
-            OpenScheiControl()
         }
     }
 }

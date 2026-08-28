@@ -159,13 +159,15 @@ struct SettingsView: View {
 
                 Section {
                     LabeledContent("Versione", value: appVersion)
+                    LabeledContent("Contenitore condiviso", value: AppGroup.isAvailable ? "attivo" : "non disponibile")
+                        .foregroundStyle(AppGroup.isAvailable ? Color.primary : ScheiTheme.danger)
                     Link(destination: URL(string: "https://github.com/filippobenozzi/soldo-app")!) {
                         Label("Codice sorgente su GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 } header: {
                     Text("Info")
                 } footer: {
-                    Text("Schei non ha abbonamenti, pubblicità né tracciamento. I dati restano sul telefono e nel tuo vault.")
+                    Text("Schei non ha abbonamenti, pubblicità né tracciamento. I dati restano sul telefono e nel tuo vault.\n\nIl contenitore condiviso è l'App Group che alimenta i widget. Se risulta non disponibile, il metodo di sideloading non l'ha registrato: l'app funziona lo stesso, ma i widget restano vuoti.")
                 }
             }
             .navigationTitle("Impostazioni")

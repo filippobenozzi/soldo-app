@@ -31,8 +31,13 @@ struct RootView: View {
                 .tabItem { Label("Impostazioni", systemImage: "gearshape.fill") }
                 .tag(AppRouter.Tab.settings)
         }
-        .sheet(isPresented: $router.isPresentingAddExpense) {
-            AddExpenseView(draft: router.addExpenseDraft)
+        .sheet(item: $router.presentation) { presentation in
+            switch presentation.kind {
+            case .addExpense:
+                AddExpenseView(draft: presentation.draft)
+            case .quickEntry:
+                QuickEntrySheet(draft: presentation.draft)
+            }
         }
         .fullScreenCover(isPresented: Binding(
             get: { !settings.hasCompletedOnboarding },
@@ -40,7 +45,7 @@ struct RootView: View {
         )) {
             OnboardingView()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .soldoOpenQuickAdd)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .scheiOpenQuickAdd)) { _ in
             consumeQuickAddRequest()
         }
         .task { consumeQuickAddRequest() }
@@ -61,6 +66,10 @@ struct RootView: View {
         var draft = ExpenseDraft()
         draft.amountText = request.amountText
         draft.merchant = request.merchant
-        router.presentAddExpense(draft: draft)
+
+        switch request.mode {
+        case .quick: router.presentQuickEntry(draft: draft)
+        case .full: router.presentAddExpense(draft: draft)
+        }
     }
 }

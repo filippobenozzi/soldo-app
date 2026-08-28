@@ -145,7 +145,7 @@ struct OpenAddExpenseIntent: AppIntent {
 
         // Both paths matter: the router covers a warm launch, the inbox covers a
         // cold one where the UI is not listening yet.
-        QuickAddInbox.post(amountText: draft.amountText, merchant: draft.merchant)
+        QuickAddInbox.post(mode: .full, amountText: draft.amountText, merchant: draft.merchant)
         AppRouter.shared.presentAddExpense(draft: draft)
         return .result()
     }

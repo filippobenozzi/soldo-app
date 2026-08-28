@@ -66,8 +66,8 @@ enum QuickExpenseWriter {
 ///
 /// The prompt is the system's own, which is why this is the action to put in a
 /// Shortcut: run it from the Lock Screen and iOS asks "Quanto hai speso?" before
-/// saving. Control Centre buttons cannot prompt, which is what
-/// `ControlQuickAddIntent` is for.
+/// saving. Control Centre buttons cannot prompt at all — the control opens the
+/// app's own keypad sheet instead.
 struct QuickAddExpenseIntent: AppIntent {
     static var title: LocalizedStringResource { "Spesa veloce" }
 
@@ -104,67 +104,3 @@ struct QuickAddExpenseIntent: AppIntent {
         return .result(dialog: IntentDialog("Registrata una spesa di \(formatted)."))
     }
 }
-
-/// What a Control Centre button runs.
-///
-/// A control cannot ask the user anything: it fires the intent and that is that.
-/// So the amount is fixed when the control is added — see
-/// `QuickAddControlConfiguration` — and the intent always has a value to work
-/// with. The earlier version relied on a prompt that never appeared, which is why
-/// tapping the button did nothing at all.
-struct ControlQuickAddIntent: AppIntent {
-    static var title: LocalizedStringResource { "Registra spesa preimpostata" }
-    static var openAppWhenRun: Bool { false }
-    static var isDiscoverable: Bool { false }
-
-    @Parameter(title: "Importo", default: 5.0)
-    var amount: Double
-
-    @Parameter(title: "Esercente")
-    var merchant: String?
-
-    init() {}
-
-    init(amount: Double, merchant: String?) {
-        self.amount = amount
-        self.merchant = merchant
-    }
-
-    @MainActor
-    func perform() async throws -> some IntentResult & ProvidesDialog {
-        let decimal = Decimal(amount)
-        guard decimal > 0 else {
-            return .result(dialog: IntentDialog("Imposta un importo per questo controllo."))
-        }
-
-        await QuickExpenseWriter.record(amount: decimal, merchant: merchant)
-        let formatted = Money.string(decimal, currencyCode: AppSettings.shared.currencyCode)
-        return .result(dialog: IntentDialog("Registrata una spesa di \(formatted)."))
-    }
-}
-
-/// The control's own settings, edited by long-pressing it in Control Centre.
-/// Add one control per amount you use often — un caffè, un pranzo, un pieno.
-struct QuickAddControlConfiguration: ControlConfigurationIntent {
-    static var title: LocalizedStringResource { "Spesa veloce" }
-
-    static var description: IntentDescription {
-        IntentDescription("Scegli l'importo che questo pulsante registra.", categoryName: "Spese")
-    }
-
-    @Parameter(title: "Importo", default: 5.0)
-    var amount: Double
-
-    @Parameter(title: "Esercente")
-    var merchant: String?
-
-    /// A configuration intent only carries the control's settings and is never
-    /// actually run. AppIntents ships a default `perform()` for exactly this, but
-    /// it is not marked available in app extensions — where the control lives — so
-    /// it has to be spelled out.
-    func perform() async throws -> Never {
-        throw ConfigurationIntentNotPerformable()
-    }
-}
-
-private struct ConfigurationIntentNotPerformable: Error {}

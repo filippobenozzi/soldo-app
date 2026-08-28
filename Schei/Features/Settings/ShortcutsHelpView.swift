@@ -34,17 +34,12 @@ struct ShortcutsHelpView: View {
                 helpRow(
                     symbol: "eurosign.circle.fill",
                     title: "Spesa veloce",
-                    detail: "Registra con un tocco l'importo che scegli quando aggiungi il controllo. Tienilo premuto per cambiarlo, o aggiungine più d'uno: un caffè, un pranzo, un pieno."
-                )
-                helpRow(
-                    symbol: "square.and.pencil",
-                    title: "Nuova spesa",
-                    detail: "Apre invece questa schermata, per quando servono categoria, nota o la scansione di uno scontrino."
+                    detail: "Apre il tastierino: digiti l'importo e tocchi Fatto. Il luogo e la categoria arrivano da soli, e il terzo pulsante inquadra lo scontrino."
                 )
             } header: {
                 Text("Centro di Controllo e schermata di blocco")
             } footer: {
-                Text("Un controllo non può fare domande: tocchi e agisce. Per farti chiedere l'importo ogni volta, crea in Comandi rapidi una scorciatoia con «Chiedi input» seguita da «Spesa veloce», e aggiungi quella scorciatoia alla schermata di blocco.")
+                Text("Aggiungi il controllo da Impostazioni iOS › Centro di Controllo, oppure assegnalo al tasto Azione. Se preferisci che sia il sistema a chiederti l'importo senza aprire nulla, crea in Comandi rapidi una scorciatoia con «Chiedi input» seguita dall'azione «Spesa veloce» di Schei.")
             }
 
             Section {

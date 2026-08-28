@@ -29,7 +29,7 @@ Schei è un progetto indipendente, non affiliato con SyncSpend né con i suoi au
 - **Sincronizzazione Obsidian** in quattro formati, con anteprima dal vivo nelle impostazioni.
 - **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli, dopo una schermata di conferma che mostra cosa è stato letto. Dal nome e dalla via stampati Schei risale al posto, quindi alle coordinate e alla categoria.
 - **Luogo automatico** — quando apri una nuova spesa, Schei riconosce il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto.
-- **Spesa veloce** — dal Centro di Controllo, dalla schermata di blocco o dal tasto Azione: iOS chiede l'importo e la spesa viene registrata **senza aprire l'app**.
+- **Spesa veloce** — dal Centro di Controllo, dalla schermata di blocco o dal tasto Azione: si apre il tastierino, digiti l'importo e tocchi Fatto. Luogo e categoria arrivano da soli, e un terzo pulsante inquadra lo scontrino.
 - **Widget** — totale del mese e budget (piccolo, medio), ultime spese (medio, grande) e widget per la schermata di blocco.
 - **Comandi rapidi** — azioni `Aggiungi spesa`, `Apri nuova spesa`, `Totale speso`, `Sincronizza`, utilizzabili con Siri, Tocco posteriore, tasto Azione e automazioni Apple Pay.
 - **Analisi** — grafici per giorno, per mese e per categoria, confronto col periodo precedente e proiezione di fine mese.
@@ -211,7 +211,10 @@ AltStore o Sideloadly.
 - Passando dalla 1.1.0 alla 1.2.0 il database viene **copiato** nel contenitore
   condiviso: l'originale non viene mai cancellato, e se la copia non riesce Schei
   continua a usare quello di prima.
-- I controlli del Centro di Controllo richiedono iOS 18 o successivo.
+- Il controllo del Centro di Controllo richiede iOS 18 o successivo.
+- Impostazioni › Info mostra se il **contenitore condiviso** è attivo: è la prova che
+  l'App Group è stato registrato. Se dice «non disponibile», i widget resteranno
+  vuoti — l'app funziona lo stesso.
 
 ## Compilare in locale
 
@@ -258,15 +261,16 @@ subito l'aggiornamento.
 
 ## Automazioni
 
-Schei installa due controlli per il Centro di Controllo, la schermata di blocco e il
-tasto Azione:
+Il controllo **Spesa veloce** — per Centro di Controllo, schermata di blocco e tasto
+Azione — apre il tastierino di Schei: importo, Fatto, finito. Il luogo e la categoria
+vengono rilevati mentre digiti, e il pulsante centrale inquadra lo scontrino.
 
-- **Spesa veloce** — iOS chiede l'importo con il suo prompt e la spesa viene salvata
-  subito, senza aprire l'app. Categoria, conto e valuta sono quelli predefiniti.
-- **Nuova spesa** — apre invece la schermata completa, per quando servono categoria,
-  nota o la scansione dello scontrino.
+Un controllo iOS non può mostrare una tastiera propria né fare domande: può solo
+eseguire un'azione. Per farsi chiedere l'importo dal sistema senza aprire nulla,
+la strada è una scorciatoia con «Chiedi input» seguita dall'azione **Spesa veloce**,
+aggiunta alla schermata di blocco.
 
-Le stesse azioni compaiono tenendo premuta l'icona dell'app e in Comandi rapidi.
+Le azioni compaiono anche tenendo premuta l'icona dell'app e in Comandi rapidi.
 
 L'azione **Aggiungi spesa** accetta importo, esercente, categoria, conto, nota e data,
 e salva senza aprire l'app. Per registrare automaticamente i pagamenti Apple Pay:

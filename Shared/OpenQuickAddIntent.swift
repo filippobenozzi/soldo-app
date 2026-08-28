@@ -1,27 +1,26 @@
 import AppIntents
 
-/// Opens Schei straight on the add-expense screen.
+/// Opens Schei straight on the compact amount-first sheet.
 ///
-/// This lives in `Shared/`, so it is compiled into both the app and the widget
-/// extension. That matters: `openAppWhenRun` makes iOS launch the app and perform
-/// the intent *there*, which only works when the app declares the same intent.
-/// An earlier version returned `OpenURLIntent` from a widget-only intent, and
-/// nothing happened — `OpenURLIntent` is a `SystemIntent`, not an `AppIntent`.
+/// This is what the Control Centre button runs. A control cannot show a keypad of
+/// its own, and an intent that only writes data has no way to ask how much was
+/// spent — so the app comes forward, but on a sheet that is one number and one tap,
+/// not the full insert screen.
+///
+/// It lives in `Shared/`, so it is compiled into both the app and the widget
+/// extension: `openAppWhenRun` makes iOS launch the app and perform the intent
+/// there, which only works when the app declares the same intent.
 struct OpenQuickAddIntent: AppIntent {
-    static var title: LocalizedStringResource { "Nuova spesa" }
+    static var title: LocalizedStringResource { "Spesa veloce" }
 
     static var description: IntentDescription {
-        IntentDescription("Apre Schei sulla schermata di inserimento spesa.", categoryName: "Spese")
+        IntentDescription("Apre Schei sul tastierino per registrare una spesa in due tocchi.", categoryName: "Spese")
     }
 
     static var openAppWhenRun: Bool { true }
 
-    /// Hidden from the Shortcuts gallery: `OpenAddExpenseIntent` is the richer,
-    /// parameterised action people should find there.
-    static var isDiscoverable: Bool { false }
-
     func perform() async throws -> some IntentResult {
-        QuickAddInbox.post()
+        QuickAddInbox.post(mode: .quick)
         return .result()
     }
 }
