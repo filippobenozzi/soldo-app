@@ -1,0 +1,173 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versione da rilasciare (es. 1.0.1). Lascia vuoto per una build senza release."
+        type: string
+        required: false
+      notes:
+        description: "Note di rilascio mostrate in AltStore"
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: IPA non firmata
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Seleziona Xcode
+        run: |
+          set -euo pipefail
+          latest="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$latest" ]; then
+            echo "Nessun Xcode trovato sul runner" >&2
+            exit 1
+          fi
+          sudo xcode-select -s "$latest"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i "iOS" || true
+
+      - name: Installa XcodeGen
+        run: brew install xcodegen
+
+      - name: Calcola versione e build
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            RELEASE=true
+          elif [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
+            RELEASE=true
+          else
+            VERSION="$(sed -n 's/.*MARKETING_VERSION: *"\(.*\)".*/\1/p' project.yml | head -1)"
+            RELEASE=false
+          fi
+          BUILD="${GITHUB_RUN_NUMBER}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "build=${BUILD}" >> "$GITHUB_OUTPUT"
+          echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "Soldo ${VERSION} (${BUILD}) — release=${RELEASE}"
+
+      - name: Genera il progetto Xcode
+        run: xcodegen generate
+
+      - name: Verifiche logica Obsidian
+        run: ./Tools/run-checks.sh
+
+      - name: Archivia (senza firma)
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -project Soldo.xcodeproj \
+            -scheme Soldo \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Soldo.xcarchive \
+            MARKETING_VERSION="${{ steps.version.outputs.version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Crea le IPA
+        run: |
+          set -euo pipefail
+          ./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo.ipa
+          ./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo-no-widget.ipa --no-widget
+          ls -la artifacts
+
+      - name: Carica gli artefatti
+        uses: actions/upload-artifact@v4
+        with:
+          name: Soldo-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
+          path: artifacts/*.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Crea la release
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+
+          {
+            printf '%s\n\n' "${NOTES:-Soldo ${VERSION} (build ${BUILD}).}"
+            printf '### Installazione con AltStore\n\n'
+            printf 'Aggiungi questa sorgente in AltStore:\n\n'
+            printf '    https://raw.githubusercontent.com/%s/main/altstore/source.json\n\n' "${GITHUB_REPOSITORY}"
+            printf 'In alternativa scarica direttamente Soldo.ipa e installala con AltStore o Sideloadly.\n\n'
+            printf 'Soldo-no-widget.ipa e la stessa app senza estensione widget: '
+            printf 'usala se hai gia raggiunto il limite di 3 app firmate con un Apple ID gratuito.\n'
+          } > release-notes.md
+
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" artifacts/Soldo.ipa artifacts/Soldo-no-widget.ipa --clobber
+          else
+            gh release create "$TAG" \
+              artifacts/Soldo.ipa artifacts/Soldo-no-widget.ipa \
+              --title "Soldo ${VERSION}" \
+              --notes-file release-notes.md
+          fi
+
+      - name: Aggiorna la sorgente AltStore
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git checkout -B main origin/main
+
+          python3 Tools/update_source.py \
+            --version "${VERSION}" \
+            --build "${BUILD}" \
+            --ipa artifacts/Soldo.ipa \
+            --download-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/Soldo.ipa" \
+            --notes "${NOTES:-Soldo ${VERSION}}"
+
+          if git diff --quiet altstore/source.json; then
+            echo "Sorgente già aggiornata."
+          else
+            git add altstore/source.json
+            git commit -m "Soldo ${VERSION} nella sorgente AltStore [skip ci]"
+            git push origin main
+          fi

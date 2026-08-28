@@ -1,0 +1,32 @@
+{
+  "name": "Soldo",
+  "identifier": "im.filippo.soldo.source",
+  "subtitle": "Spese veloci, sincronizzate con Obsidian",
+  "description": "Sorgente ufficiale di Soldo: un tracciatore di spese minimale che scrive le tue spese direttamente nel vault Obsidian, in Markdown. Nessun account, nessun abbonamento, nessun tracciamento.",
+  "website": "https://github.com/filippobenozzi/soldo-app",
+  "iconURL": "https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/icon.png",
+  "tintColor": "27AE60",
+  "nsfw": false,
+  "featuredApps": ["im.filippo.soldo"],
+  "apps": [
+    {
+      "name": "Soldo",
+      "bundleIdentifier": "im.filippo.soldo",
+      "developerName": "Filippo Benozzi",
+      "subtitle": "Spese in Markdown, nel tuo vault",
+      "localizedDescription": "Soldo è un modo veloce e minimale per segnare le spese.\n\n• Sincronizzazione con Obsidian — scegli la cartella del tuo vault e Soldo ci scrive le spese come normali file Markdown. Quattro formati: una nota per spesa con front matter YAML (pronta per Dataview), una tabella in nota unica, una riga nella nota giornaliera, oppure un CSV.\n• Registrazione rapida — tastierino dedicato, categorie a portata di pollice, due secondi per spesa.\n• Widget — totale del mese, budget e ultime spese sulla schermata Home, sulla schermata di blocco e nel Centro di Controllo.\n• Comandi rapidi — azione «Aggiungi spesa» da usare col Tocco posteriore, col tasto Azione o subito dopo un pagamento con Apple Pay.\n• Analisi — grafici per giorno, mese e categoria, con proiezione di fine mese.\n\nNessun account, nessun abbonamento, nessuna pubblicità, nessun tracciamento. I dati restano sul telefono e nel tuo vault.",
+      "iconURL": "https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/icon.png",
+      "tintColor": "27AE60",
+      "category": "finance",
+      "screenshots": [],
+      "versions": [],
+      "appPermissions": {
+        "entitlements": [
+          "com.apple.security.application-groups"
+        ],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": []
+}
