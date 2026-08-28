@@ -7,7 +7,9 @@
   "iconURL": "https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/icon.png",
   "tintColor": "27AE60",
   "nsfw": false,
-  "featuredApps": ["im.filippo.soldo"],
+  "featuredApps": [
+    "im.filippo.soldo"
+  ],
   "apps": [
     {
       "name": "Soldo",
@@ -19,13 +21,29 @@
       "tintColor": "27AE60",
       "category": "finance",
       "screenshots": [],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "2",
+          "date": "2026-08-28T09:23:06Z",
+          "localizedDescription": "Soldo 1.0.0",
+          "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.0.0/Soldo.ipa",
+          "size": 1763062,
+          "sha256": "b3dce8e2e8a869fc106d7af3ab6d3755b2d354ef2541db380bbfc608c0159b99",
+          "minOSVersion": "17.0"
+        }
+      ],
       "appPermissions": {
         "entitlements": [
           "com.apple.security.application-groups"
         ],
         "privacy": {}
-      }
+      },
+      "version": "1.0.0",
+      "versionDate": "2026-08-28T09:23:06Z",
+      "versionDescription": "Soldo 1.0.0",
+      "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.0.0/Soldo.ipa",
+      "size": 1763062
     }
   ],
   "news": []
