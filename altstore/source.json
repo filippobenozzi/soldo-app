@@ -23,6 +23,16 @@
       "screenshots": [],
       "versions": [
         {
+          "version": "1.4.0",
+          "buildVersion": "12",
+          "date": "2026-08-28T16:53:16Z",
+          "localizedDescription": "Schei 1.4.0",
+          "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.4.0/Schei.ipa",
+          "size": 8333450,
+          "sha256": "19c80b5e5ffbb152968800245edc9733efe413a7ae73984c364394d9e1d54e7b",
+          "minOSVersion": "17.0"
+        },
+        {
           "version": "1.3.0",
           "buildVersion": "10",
           "date": "2026-08-28T16:36:29Z",
@@ -83,11 +93,11 @@
           "NSPhotoLibraryUsageDescription": "Legge uno scontrino da una foto già scattata."
         }
       },
-      "version": "1.3.0",
-      "versionDate": "2026-08-28T16:36:29Z",
-      "versionDescription": "Schei 1.3.0",
-      "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.3.0/Schei.ipa",
-      "size": 3543402
+      "version": "1.4.0",
+      "versionDate": "2026-08-28T16:53:16Z",
+      "versionDescription": "Schei 1.4.0",
+      "downloadURL": "https://github.com/filippobenozzi/soldo-app/releases/download/v1.4.0/Schei.ipa",
+      "size": 8333450
     }
   ],
   "news": []
