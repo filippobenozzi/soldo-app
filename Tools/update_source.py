@@ -51,7 +51,7 @@ def main() -> int:
         "version": args.version,
         "buildVersion": str(args.build),
         "date": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
-        "localizedDescription": args.notes.strip() or f"Soldo {args.version}",
+        "localizedDescription": args.notes.strip() or f"Schei {args.version}",
         "downloadURL": args.download_url,
         "size": args.ipa.stat().st_size,
         "sha256": sha256(args.ipa),
@@ -69,7 +69,7 @@ def main() -> int:
     app["size"] = entry["size"]
 
     SOURCE_PATH.write_text(json.dumps(source, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Added Soldo {args.version} ({args.build}) — {entry['size']} bytes")
+    print(f"Added Schei {args.version} ({args.build}) — {entry['size']} bytes")
     return 0
 
 

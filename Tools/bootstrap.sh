@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generates Soldo.xcodeproj from project.yml.
+# Generates Schei.xcodeproj from project.yml.
 # The Xcode project is not committed: XcodeGen rebuilds it from the spec.
 set -euo pipefail
 
@@ -16,4 +16,4 @@ if ! command -v xcodegen >/dev/null 2>&1; then
 fi
 
 xcodegen generate
-echo "Done. Open Soldo.xcodeproj."
+echo "Done. Open Schei.xcodeproj."

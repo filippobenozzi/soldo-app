@@ -45,7 +45,7 @@ check(Money.machineString(Decimal(string: "1234.5")!) == "1234.50", "machine str
 // MARK: - Path safety
 
 section("ObsidianPath")
-check(ObsidianPath.normalize("/Soldo/Spese/") == "Soldo/Spese", "slashes trimmed")
+check(ObsidianPath.normalize("/Schei/Spese/") == "Schei/Spese", "slashes trimmed")
 check(ObsidianPath.normalize("../../etc") == "etc", "parent traversal stripped")
 check(ObsidianPath.normalize("a/../b") == "a/b", "inner traversal stripped")
 check(ObsidianPath.ensureExtension("Spese", "md") == "Spese.md", "extension added")
@@ -57,7 +57,7 @@ check(!ObsidianPath.sanitizeFileName("a/b:c*d?e").contains("/"), "illegal chars 
 section("mode: notePerExpense")
 var config = ObsidianConfiguration()
 config.mode = .notePerExpense
-config.folderPath = "Soldo/Spese"
+config.folderPath = "Schei/Spese"
 
 let idA = UUID(), idB = UUID(), idC = UUID()
 var outcome = ObsidianSyncOutcome()
@@ -95,9 +95,9 @@ check(exists(renamedPath), "new note written")
 outcome = ObsidianSyncOutcome()
 ObsidianSyncEngine.syncNotesPerExpense(
     items: [], deletions: [ExpenseDeletionItem(expenseID: idB, date: day,
-                                               relativePath: outcome.syncedWithPath[idB] ?? "Soldo/Spese/2026-08-28 Bar 3.00.md")],
+                                               relativePath: outcome.syncedWithPath[idB] ?? "Schei/Spese/2026-08-28 Bar 3.00.md")],
     configuration: config, root: root, outcome: &outcome)
-check(!exists("Soldo/Spese/2026-08-28 Bar 3.00.md"), "deleted note removed from vault")
+check(!exists("Schei/Spese/2026-08-28 Bar 3.00.md"), "deleted note removed from vault")
 
 // Two different expenses that render to the same file name must not overwrite each other.
 let idD = UUID(), idE = UUID()
@@ -176,12 +176,12 @@ check(farmaciaIdx > speseIdx && farmaciaIdx < noteIdx, "line inserted inside the
 section("mode: singleNote")
 config = ObsidianConfiguration()
 config.mode = .singleNote
-config.folderPath = "Soldo"
+config.folderPath = "Schei"
 outcome = ObsidianSyncOutcome()
 try! ObsidianSyncEngine.rebuildSingleNote(
     items: [item("12.50", "Coop", "pane | latte"), item("3.00", "Bar", "caffè\ndoppio")],
     configuration: config, root: root, outcome: &outcome)
-let table = read("Soldo/Spese.md") ?? ""
+let table = read("Schei/Spese.md") ?? ""
 check(table.contains("| Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Luogo | Nota |"), "table header written")
 check(table.contains("| 2026-08-28 |"), "row written")
 check(table.contains("pane \\| latte"), "pipe escaped inside a cell")
@@ -195,7 +195,7 @@ check(rowCount == 2, "exactly two data rows")
 outcome = ObsidianSyncOutcome()
 try! ObsidianSyncEngine.rebuildSingleNote(
     items: [item("12.50", "Coop")], configuration: config, root: root, outcome: &outcome)
-let rebuilt = read("Soldo/Spese.md") ?? ""
+let rebuilt = read("Schei/Spese.md") ?? ""
 check(rebuilt.components(separatedBy: "\n").filter { $0.hasPrefix("| 2026") }.count == 1, "rebuild drops removed rows")
 
 section("mode: csv")
@@ -204,7 +204,7 @@ outcome = ObsidianSyncOutcome()
 try! ObsidianSyncEngine.rebuildCSV(
     items: [item("12.50", "Coop", "dice \"ciao\""), item("3.00", "Bar, angolo")],
     configuration: config, root: root, outcome: &outcome)
-let csv = read("Soldo/Spese.csv") ?? ""
+let csv = read("Schei/Spese.csv") ?? ""
 check(csv.hasPrefix("id,data,ora,importo"), "csv header")
 check(csv.contains("\"dice \"\"ciao\"\"\""), "quotes escaped")
 check(csv.contains("\"Bar, angolo\""), "comma-bearing field quoted")

@@ -1,4 +1,4 @@
-name: Soldo
+name: Schei
 options:
   bundleIdPrefix: im.filippo
   deploymentTarget:
@@ -9,7 +9,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "1.2.1"
+    MARKETING_VERSION: "1.3.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
@@ -26,18 +26,18 @@ settings:
     OTHER_LDFLAGS: -ObjC
 
 targets:
-  Soldo:
+  Schei:
     type: application
     platform: iOS
     sources:
-      - path: Soldo
+      - path: Schei
       - path: Shared
     settings:
       base:
-        PRODUCT_NAME: Soldo
+        PRODUCT_NAME: Schei
         PRODUCT_BUNDLE_IDENTIFIER: im.filippo.soldo
-        INFOPLIST_FILE: Soldo/Support/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Soldo/Support/Soldo.entitlements
+        INFOPLIST_FILE: Schei/Support/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Schei/Support/Schei.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SUPPORTS_MACCATALYST: NO
@@ -45,27 +45,27 @@ targets:
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
     dependencies:
-      - target: SoldoWidgetExtension
+      - target: ScheiWidgetExtension
 
-  SoldoWidgetExtension:
+  ScheiWidgetExtension:
     type: app-extension
     platform: iOS
     sources:
-      - path: SoldoWidget
+      - path: ScheiWidget
       - path: Shared
     settings:
       base:
-        PRODUCT_NAME: SoldoWidgetExtension
+        PRODUCT_NAME: ScheiWidgetExtension
         PRODUCT_BUNDLE_IDENTIFIER: im.filippo.soldo.widget
-        INFOPLIST_FILE: SoldoWidget/Info.plist
-        CODE_SIGN_ENTITLEMENTS: SoldoWidget/SoldoWidget.entitlements
+        INFOPLIST_FILE: ScheiWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ScheiWidget/ScheiWidget.entitlements
         SKIP_INSTALL: YES
 
 schemes:
-  Soldo:
+  Schei:
     build:
       targets:
-        Soldo: all
+        Schei: all
     run:
       config: Debug
     archive:

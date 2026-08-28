@@ -1,6 +1,6 @@
 import AppIntents
 
-/// Opens Soldo straight on the add-expense screen.
+/// Opens Schei straight on the add-expense screen.
 ///
 /// This lives in `Shared/`, so it is compiled into both the app and the widget
 /// extension. That matters: `openAppWhenRun` makes iOS launch the app and perform
@@ -11,7 +11,7 @@ struct OpenQuickAddIntent: AppIntent {
     static var title: LocalizedStringResource { "Nuova spesa" }
 
     static var description: IntentDescription {
-        IntentDescription("Apre Soldo sulla schermata di inserimento spesa.", categoryName: "Spese")
+        IntentDescription("Apre Schei sulla schermata di inserimento spesa.", categoryName: "Spese")
     }
 
     static var openAppWhenRun: Bool { true }

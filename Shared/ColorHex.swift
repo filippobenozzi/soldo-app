@@ -25,7 +25,7 @@ extension Color {
 
 /// Ink-on-paper tinting, shared by the app and the widget extension.
 ///
-/// Soldo is monochrome by default; category colours are stored but only rendered
+/// Schei is monochrome by default; category colours are stored but only rendered
 /// when the user turns them on, so both processes need the same rule.
 enum InkPalette {
     static func tint(_ hex: String, colorful: Bool) -> Color {
@@ -34,7 +34,7 @@ enum InkPalette {
 }
 
 /// The palette offered when creating categories and accounts.
-enum SoldoPalette {
+enum ScheiPalette {
     static let hexes = [
         "27AE60", "16A085", "2E86DE", "5F6CAF", "8E44AD", "C0392B",
         "E67E22", "F39C12", "D35400", "E84393", "0FB9B1", "596275",

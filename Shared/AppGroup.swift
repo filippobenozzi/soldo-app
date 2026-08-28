@@ -2,7 +2,7 @@ import Foundation
 
 /// Access to the container shared between the app and the widget extension.
 ///
-/// Every accessor is optional on purpose: when Soldo is sideloaded the App Group
+/// Every accessor is optional on purpose: when Schei is sideloaded the App Group
 /// entitlement is not always granted, and the app has to keep working without it
 /// (only the widget loses its data in that case).
 enum AppGroup {

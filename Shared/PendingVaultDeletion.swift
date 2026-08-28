@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// Remembers an expense that was deleted in Soldo so the next sync run can also
+/// Remembers an expense that was deleted in Schei so the next sync run can also
 /// remove it from the vault. Rows are dropped once the vault has been cleaned.
 @Model
 final class PendingVaultDeletion {

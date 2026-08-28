@@ -1,34 +1,34 @@
 <div align="center">
-  <img src="altstore/icon.png" width="120" alt="Soldo">
-  <h1>Soldo</h1>
+  <img src="altstore/icon.png" width="120" alt="Schei">
+  <h1>Schei</h1>
   <p><strong>Un modo veloce e minimale per segnare le spese, sincronizzate con il tuo vault Obsidian.</strong></p>
   <p>Nessun account · Nessun abbonamento · Nessuna pubblicità · Nessun tracciamento</p>
 </div>
 
 ---
 
-Soldo è un tracciatore di spese per iPhone e iPad, pensato per chi tiene le proprie
+Schei è un tracciatore di spese per iPhone e iPad, pensato per chi tiene le proprie
 note e i propri dati in **Obsidian**. Registri una spesa in due secondi con un
-tastierino dedicato, e Soldo la scrive nel tuo vault come normale file Markdown —
+tastierino dedicato, e Schei la scrive nel tuo vault come normale file Markdown —
 leggibile, versionabile, tuo.
 
 L'app è ispirata a [SyncSpend](https://apps.apple.com/app/syncspend/id6759112033),
 di cui riprende l'impostazione, con tre differenze sostanziali:
 
-| SyncSpend | Soldo |
+| SyncSpend | Schei |
 | --- | --- |
 | Sincronizzazione con **Notion** (API, account, token) | Sincronizzazione con **Obsidian**: scegli la cartella del vault, si scrive su file |
 | **Abbonamento Pro** (mensile, annuale, a vita) | Tutto gratis, nessun paywall nel codice |
 | Sincronizzazione **iCloud** fra dispositivi | Il vault fa da archivio condiviso; in più c'è export/import JSON |
 
-Soldo è un progetto indipendente, non affiliato con SyncSpend né con i suoi autori.
+Schei è un progetto indipendente, non affiliato con SyncSpend né con i suoi autori.
 
 ## Funzionalità
 
 - **Registrazione rapida** — tastierino numerico dedicato, categorie e conti a portata di pollice, data con scorciatoie Oggi/Ieri.
 - **Sincronizzazione Obsidian** in quattro formati, con anteprima dal vivo nelle impostazioni.
-- **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli, dopo una schermata di conferma che mostra cosa è stato letto. Dal nome e dalla via stampati Soldo risale al posto, quindi alle coordinate e alla categoria.
-- **Luogo automatico** — quando apri una nuova spesa, Soldo riconosce il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto.
+- **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli, dopo una schermata di conferma che mostra cosa è stato letto. Dal nome e dalla via stampati Schei risale al posto, quindi alle coordinate e alla categoria.
+- **Luogo automatico** — quando apri una nuova spesa, Schei riconosce il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto.
 - **Spesa veloce** — dal Centro di Controllo, dalla schermata di blocco o dal tasto Azione: iOS chiede l'importo e la spesa viene registrata **senza aprire l'app**.
 - **Widget** — totale del mese e budget (piccolo, medio), ultime spese (medio, grande) e widget per la schermata di blocco.
 - **Comandi rapidi** — azioni `Aggiungi spesa`, `Apri nuova spesa`, `Totale speso`, `Sincronizza`, utilizzabili con Siri, Tocco posteriore, tasto Azione e automazioni Apple Pay.
@@ -39,7 +39,7 @@ Soldo è un progetto indipendente, non affiliato con SyncSpend né con i suoi au
 
 ## Aspetto
 
-Soldo è **in bianco e nero**, come l'app da cui prende le mosse: sfondo `#F5F5F5`,
+Schei è **in bianco e nero**, come l'app da cui prende le mosse: sfondo `#F5F5F5`,
 schede bianche, inchiostro nero, badge `#EDEDED`, e nessun colore d'accento. In modo
 scuro tutto si inverte. Le categorie hanno comunque un colore, usato solo se attivi
 *Impostazioni › Icone a colori*; altrimenti i grafici a torta usano una scala di grigi.
@@ -47,7 +47,7 @@ scuro tutto si inverte. Le categorie hanno comunque un colore, usato solo se att
 ## Scontrini e luoghi
 
 **Scansione.** Dal pulsante in alto a destra della schermata di inserimento puoi
-inquadrare uno scontrino o scegliere una foto. Soldo usa lo scanner di sistema
+inquadrare uno scontrino o scegliere una foto. Schei usa lo scanner di sistema
 (ritaglio e raddrizzamento automatici) e poi Vision per il riconoscimento del testo,
 in italiano e inglese, abbassando la soglia di altezza minima del testo — quella
 predefinita è pensata per cartelli, non per la stampa fitta di uno scontrino.
@@ -69,13 +69,13 @@ una schermata che mostra l'importo trovato, il negozio, la data e — in fondo �
 il testo riconosciuto. Se il totale è sbagliato, tocchi una delle altre cifre lette
 sullo scontrino; se non è stato letto nulla, lo vedi subito e capisci perché.
 
-**Dal negozio al luogo.** Con nome e via, Soldo interroga Apple Maps e ottiene il
+**Dal negozio al luogo.** Con nome e via, Schei interroga Apple Maps e ottiene il
 posto: coordinate, categoria del punto di interesse e quindi la categoria di spesa.
 
-**Dove sei.** Se dai il permesso, aprendo una nuova spesa Soldo cerca i punti di
+**Dove sei.** Se dai il permesso, aprendo una nuova spesa Schei cerca i punti di
 interesse nel raggio di 160 metri e propone il più vicino. Puoi cambiarlo dall'elenco
 dei posti vicini. La corrispondenza fra tipo di posto e categoria è in
-[`PlaceCategoryTable.swift`](Soldo/Location/PlaceCategoryTable.swift): supermercati e
+[`PlaceCategoryTable.swift`](Schei/Location/PlaceCategoryTable.swift): supermercati e
 panetterie → Spesa, ristoranti e bar → Ristoranti, distributori e parcheggi →
 Trasporti, farmacie → Salute, e così via. Il confronto avviene sul *nome* della
 categoria, quindi continua a funzionare anche se rinomini le tue.
@@ -84,7 +84,7 @@ Nulla di tutto questo esce dal telefono se non verso Apple Maps per la singola
 ricerca: la posizione viene letta solo mentre registri una spesa, mai in background,
 e le foto degli scontrini non vengono salvate.
 
-## Come Soldo scrive nel vault
+## Come Schei scrive nel vault
 
 In **Impostazioni › Obsidian** scegli la cartella del vault (una qualsiasi cartella
 raggiungibile dall'app File: iCloud Drive, `Su iPhone › Obsidian`, una chiavetta…)
@@ -94,7 +94,7 @@ bookmark*, quindi va concesso una volta sola.
 <details>
 <summary><strong>Una nota per spesa</strong> — front matter YAML, pronta per Dataview (predefinito)</summary>
 
-`Soldo/Spese/2026-08-28 Coop 12.50.md`
+`Schei/Spese/2026-08-28 Coop 12.50.md`
 
 ```markdown
 ---
@@ -126,14 +126,14 @@ Pane e latte
 `location` è la chiave che leggono i plugin di mappa di Obsidian, quindi le tue spese
 compaiono da sole sulla mappa del vault.
 
-Modificando la spesa in Soldo la nota viene aggiornata; se cambia il nome del file,
+Modificando la spesa in Schei la nota viene aggiornata; se cambia il nome del file,
 la vecchia nota viene rimossa. Eliminando la spesa, la nota viene cancellata.
 </details>
 
 <details>
 <summary><strong>Nota unica</strong> — una tabella Markdown</summary>
 
-`Soldo/Spese.md`
+`Schei/Spese.md`
 
 ```markdown
 | Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Luogo | Nota |
@@ -142,7 +142,7 @@ la vecchia nota viene rimossa. Eliminando la spesa, la nota viene cancellata.
 ```
 
 Il file viene **rigenerato per intero** a ogni sincronizzazione, così modifiche ed
-eliminazioni fatte in Soldo si riflettono sempre. Non modificarlo a mano.
+eliminazioni fatte in Schei si riflettono sempre. Non modificarlo a mano.
 </details>
 
 <details>
@@ -156,7 +156,7 @@ eliminazioni fatte in Soldo si riflettono sempre. Non modificarlo a mano.
 - **12,50 €** · Coop · Spesa · Carta — Pane e latte ^soldo-6f1a2b3c4d5e
 ```
 
-Soldo crea la nota se non esiste e inserisce la riga in fondo alla sezione indicata,
+Schei crea la nota se non esiste e inserisce la riga in fondo alla sezione indicata,
 **senza toccare il resto del file**. Il block reference finale (`^soldo-…`) le
 permette di ritrovare la riga per aggiornarla o eliminarla, e ti permette di
 linkarla da altre note.
@@ -165,7 +165,7 @@ linkarla da altre note.
 <details>
 <summary><strong>CSV</strong> — per fogli di calcolo e dataviewjs</summary>
 
-`Soldo/Spese.csv`
+`Schei/Spese.csv`
 
 ```csv
 id,data,ora,importo,valuta,categoria,conto,esercente,luogo,latitudine,longitudine,nota
@@ -189,9 +189,9 @@ nome nota sono tutti configurabili. I segnaposto disponibili sono
    https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/source.json
    ```
 
-3. Apri la sorgente **Soldo** e installa l'app.
+3. Apri la sorgente **Schei** e installa l'app.
 
-In alternativa scarica `Soldo.ipa` dall'ultima
+In alternativa scarica `Schei.ipa` dall'ultima
 [release](https://github.com/filippobenozzi/soldo-app/releases) e installala con
 AltStore o Sideloadly.
 
@@ -200,8 +200,8 @@ AltStore o Sideloadly.
 - Con un **Apple ID gratuito** le app firmate scadono dopo **7 giorni**: AltStore le
   rinnova da solo finché AltServer è raggiungibile.
 - Sempre con un Apple ID gratuito puoi tenere **3 app** attive alla volta, e
-  **ogni estensione conta come un'app**. Soldo con il widget ne occupa quindi due.
-  Per questo ogni release contiene anche **`Soldo-no-widget.ipa`**: stessa app, senza
+  **ogni estensione conta come un'app**. Schei con il widget ne occupa quindi due.
+  Per questo ogni release contiene anche **`Schei-no-widget.ipa`**: stessa app, senza
   estensione widget, un solo slot.
 - L'**App Group** `group.im.filippo.soldo` è usato sia dal widget sia dal database,
   così la spesa veloce può scrivere senza avviare l'app. Se il tuo metodo di
@@ -209,7 +209,7 @@ AltStore o Sideloadly.
   database resta nel contenitore dell'app, il widget resta vuoto e la spesa veloce
   ripiega sull'apertura della schermata di inserimento.
 - Passando dalla 1.1.0 alla 1.2.0 il database viene **copiato** nel contenitore
-  condiviso: l'originale non viene mai cancellato, e se la copia non riesce Soldo
+  condiviso: l'originale non viene mai cancellato, e se la copia non riesce Schei
   continua a usare quello di prima.
 - I controlli del Centro di Controllo richiedono iOS 18 o successivo.
 
@@ -220,8 +220,8 @@ Serve un Mac con Xcode 16 o superiore.
 ```bash
 git clone https://github.com/filippobenozzi/soldo-app.git
 cd soldo-app
-./Tools/bootstrap.sh   # installa XcodeGen se manca e genera Soldo.xcodeproj
-open Soldo.xcodeproj
+./Tools/bootstrap.sh   # installa XcodeGen se manca e genera Schei.xcodeproj
+open Schei.xcodeproj
 ```
 
 Il file `.xcodeproj` non è versionato: viene generato da
@@ -230,10 +230,10 @@ Il file `.xcodeproj` non è versionato: viene generato da
 Per compilare l'IPA non firmata come fa la CI:
 
 ```bash
-xcodebuild archive -project Soldo.xcodeproj -scheme Soldo -configuration Release \
-  -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/Soldo.xcarchive \
+xcodebuild archive -project Schei.xcodeproj -scheme Schei -configuration Release \
+  -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/Schei.xcarchive \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
-./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo.ipa
+./Tools/package-ipa.sh build/Schei.xcarchive artifacts/Schei.ipa
 ```
 
 Le verifiche — export Obsidian su cartelle vere, parser degli scontrini su testo di
@@ -258,7 +258,7 @@ subito l'aggiornamento.
 
 ## Automazioni
 
-Soldo installa due controlli per il Centro di Controllo, la schermata di blocco e il
+Schei installa due controlli per il Centro di Controllo, la schermata di blocco e il
 tasto Azione:
 
 - **Spesa veloce** — iOS chiede l'importo con il suo prompt e la spesa viene salvata
@@ -272,7 +272,7 @@ L'azione **Aggiungi spesa** accetta importo, esercente, categoria, conto, nota e
 e salva senza aprire l'app. Per registrare automaticamente i pagamenti Apple Pay:
 
 1. Comandi rapidi › Automazione › **Transazione**, scegli la carta.
-2. Aggiungi l'azione **Aggiungi spesa** di Soldo.
+2. Aggiungi l'azione **Aggiungi spesa** di Schei.
 3. Collega *Importo* e *Esercente* della transazione ai campi dell'azione.
 4. Disattiva *Chiedi prima di eseguire*.
 
@@ -280,7 +280,7 @@ e salva senza aprire l'app. Per registrare automaticamente i pagamenti Apple Pay
 
 ```
 Shared/            codice condiviso fra app e widget (valute, snapshot, colori)
-Soldo/
+Schei/
   App/             entry point, routing, sincronizzazione, backup, statistiche
   Models/          modelli SwiftData (spese, categorie, conti)
   Obsidian/        bookmark del vault, renderer Markdown/CSV, motore di scrittura
@@ -288,7 +288,7 @@ Soldo/
   Receipt/         scanner di sistema, OCR Vision, parser degli scontrini
   Intents/         azioni per Comandi rapidi e Siri
   Features/        schermate SwiftUI
-SoldoWidget/       estensione WidgetKit e controllo del Centro di Controllo
+ScheiWidget/       estensione WidgetKit e controllo del Centro di Controllo
 Tests/             verifiche di export, parser scontrini e mappatura luoghi
 Tools/             script di bootstrap, packaging e pubblicazione
 ```

@@ -111,7 +111,7 @@ enum WidgetSnapshotStore {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             // A failed widget refresh must never affect the app itself.
-            print("[Soldo] Unable to write widget snapshot: \(error)")
+            print("[Schei] Unable to write widget snapshot: \(error)")
         }
     }
 

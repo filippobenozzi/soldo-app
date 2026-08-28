@@ -21,15 +21,15 @@ OUTPUT="$(cd "$(dirname "$OUTPUT")" && pwd)/$(basename "$OUTPUT")"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-APP_SOURCE="$ARCHIVE/Products/Applications/Soldo.app"
+APP_SOURCE="$ARCHIVE/Products/Applications/Schei.app"
 if [ ! -d "$APP_SOURCE" ]; then
   echo "error: $APP_SOURCE not found" >&2
   exit 1
 fi
 
 mkdir -p "$STAGE/Payload"
-cp -R "$APP_SOURCE" "$STAGE/Payload/Soldo.app"
-APP="$STAGE/Payload/Soldo.app"
+cp -R "$APP_SOURCE" "$STAGE/Payload/Schei.app"
+APP="$STAGE/Payload/Schei.app"
 
 if [ "$DROP_WIDGET" = "--no-widget" ]; then
   # Each app extension consumes one of the three slots a free Apple ID gets,
@@ -39,14 +39,14 @@ if [ "$DROP_WIDGET" = "--no-widget" ]; then
 fi
 
 # Sign inner bundles first, then the app itself.
-if [ -d "$APP/PlugIns/SoldoWidgetExtension.appex" ]; then
+if [ -d "$APP/PlugIns/ScheiWidgetExtension.appex" ]; then
   codesign --force --sign - --timestamp=none \
-    --entitlements "$ROOT/SoldoWidget/SoldoWidget.entitlements" \
-    "$APP/PlugIns/SoldoWidgetExtension.appex"
+    --entitlements "$ROOT/ScheiWidget/ScheiWidget.entitlements" \
+    "$APP/PlugIns/ScheiWidgetExtension.appex"
 fi
 
 codesign --force --sign - --timestamp=none \
-  --entitlements "$ROOT/Soldo/Support/Soldo.entitlements" \
+  --entitlements "$ROOT/Schei/Support/Schei.entitlements" \
   "$APP"
 
 rm -f "$OUTPUT"

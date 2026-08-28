@@ -68,7 +68,7 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "build=${BUILD}" >> "$GITHUB_OUTPUT"
           echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
-          echo "Soldo ${VERSION} (${BUILD}) — release=${RELEASE}"
+          echo "Schei ${VERSION} (${BUILD}) — release=${RELEASE}"
 
       - name: Genera il progetto Xcode
         run: xcodegen generate
@@ -80,12 +80,12 @@ jobs:
         run: |
           set -euo pipefail
           xcodebuild archive \
-            -project Soldo.xcodeproj \
-            -scheme Soldo \
+            -project Schei.xcodeproj \
+            -scheme Schei \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            -archivePath build/Soldo.xcarchive \
+            -archivePath build/Schei.xcarchive \
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
             CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build }}" \
             CODE_SIGNING_ALLOWED=NO \
@@ -95,14 +95,14 @@ jobs:
       - name: Crea le IPA
         run: |
           set -euo pipefail
-          ./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo.ipa
-          ./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo-no-widget.ipa --no-widget
+          ./Tools/package-ipa.sh build/Schei.xcarchive artifacts/Schei.ipa
+          ./Tools/package-ipa.sh build/Schei.xcarchive artifacts/Schei-no-widget.ipa --no-widget
           ls -la artifacts
 
       - name: Carica gli artefatti
         uses: actions/upload-artifact@v4
         with:
-          name: Soldo-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
+          name: Schei-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
           path: artifacts/*.ipa
           if-no-files-found: error
           retention-days: 30
@@ -119,12 +119,12 @@ jobs:
           TAG="v${VERSION}"
 
           {
-            printf '%s\n\n' "${NOTES:-Soldo ${VERSION} (build ${BUILD}).}"
+            printf '%s\n\n' "${NOTES:-Schei ${VERSION} (build ${BUILD}).}"
             printf '### Installazione con AltStore\n\n'
             printf 'Aggiungi questa sorgente in AltStore:\n\n'
             printf '    https://raw.githubusercontent.com/%s/main/altstore/source.json\n\n' "${GITHUB_REPOSITORY}"
-            printf 'In alternativa scarica direttamente Soldo.ipa e installala con AltStore o Sideloadly.\n\n'
-            printf 'Soldo-no-widget.ipa e la stessa app senza estensione widget: '
+            printf 'In alternativa scarica direttamente Schei.ipa e installala con AltStore o Sideloadly.\n\n'
+            printf 'Schei-no-widget.ipa e la stessa app senza estensione widget: '
             printf 'usala se hai gia raggiunto il limite di 3 app firmate con un Apple ID gratuito.\n'
           } > release-notes.md
 
@@ -134,11 +134,11 @@ jobs:
           fi
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" artifacts/Soldo.ipa artifacts/Soldo-no-widget.ipa --clobber
+            gh release upload "$TAG" artifacts/Schei.ipa artifacts/Schei-no-widget.ipa --clobber
           else
             gh release create "$TAG" \
-              artifacts/Soldo.ipa artifacts/Soldo-no-widget.ipa \
-              --title "Soldo ${VERSION}" \
+              artifacts/Schei.ipa artifacts/Schei-no-widget.ipa \
+              --title "Schei ${VERSION}" \
               --notes-file release-notes.md
           fi
 
@@ -160,14 +160,14 @@ jobs:
           python3 Tools/update_source.py \
             --version "${VERSION}" \
             --build "${BUILD}" \
-            --ipa artifacts/Soldo.ipa \
-            --download-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/Soldo.ipa" \
-            --notes "${NOTES:-Soldo ${VERSION}}"
+            --ipa artifacts/Schei.ipa \
+            --download-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/Schei.ipa" \
+            --notes "${NOTES:-Schei ${VERSION}}"
 
           if git diff --quiet altstore/source.json; then
             echo "Sorgente già aggiornata."
           else
             git add altstore/source.json
-            git commit -m "Soldo ${VERSION} nella sorgente AltStore [skip ci]"
+            git commit -m "Schei ${VERSION} nella sorgente AltStore [skip ci]"
             git push origin main
           fi
