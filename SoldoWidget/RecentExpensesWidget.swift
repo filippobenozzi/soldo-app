@@ -30,7 +30,6 @@ struct RecentExpensesWidgetView: View {
                 Spacer()
                 Text(Money.compactString(snapshot.monthTotal, currencyCode: snapshot.currencyCode))
                     .font(.system(.caption, design: .rounded, weight: .semibold))
-                    .foregroundStyle(Color(hex: "27AE60"))
             }
 
             if snapshot.recent.isEmpty {
@@ -53,7 +52,7 @@ struct RecentExpensesWidgetView: View {
                     HStack(spacing: 8) {
                         Image(systemName: item.symbolName)
                             .font(.caption2)
-                            .foregroundStyle(Color(hex: item.colorHex))
+                            .foregroundStyle(InkPalette.tint(item.colorHex, colorful: snapshot.isColorful))
                             .frame(width: 16)
                         VStack(alignment: .leading, spacing: 0) {
                             Text(item.title)

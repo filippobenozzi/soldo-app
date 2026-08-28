@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Compiles and runs the Obsidian export checks on the host Mac.
-# These exercise the renderer and the vault writer against a real temporary folder,
-# with no simulator involved.
+# Compiles and runs Soldo's logic checks on the host Mac: the Obsidian renderer and
+# vault writer against a real temporary folder, the receipt parser against real
+# receipt text, and the place-category lookup table. No simulator involved.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -16,6 +16,9 @@ xcrun swiftc -O -o "$BUILD_DIR/checks" \
   Soldo/Obsidian/ObsidianVaultLink.swift \
   Soldo/Obsidian/ObsidianRenderer.swift \
   Soldo/Obsidian/ObsidianSyncEngine.swift \
+  Soldo/Location/PlaceCategoryTable.swift \
+  Soldo/Receipt/ReceiptScan.swift \
+  Soldo/Receipt/ReceiptParser.swift \
   Tests/ObsidianChecks/main.swift
 
 "$BUILD_DIR/checks"

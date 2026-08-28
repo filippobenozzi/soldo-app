@@ -134,16 +134,15 @@ struct HistoryView: View {
     }
 
     private func filterChip(title: String, hex: String, symbol: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        let color = Color(hex: hex)
-        return Button(action: action) {
+        Button(action: action) {
             HStack(spacing: 5) {
                 Image(systemName: symbol).font(.caption2)
                 Text(title).font(.caption.weight(.medium))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .foregroundStyle(isSelected ? .white : color)
-            .background(isSelected ? color : color.opacity(0.14), in: Capsule())
+            .foregroundStyle(isSelected ? SoldoTheme.card : SoldoTheme.tint(hex))
+            .background(isSelected ? SoldoTheme.ink : SoldoTheme.badge, in: Capsule())
         }
         .buttonStyle(.plain)
     }

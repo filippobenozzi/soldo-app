@@ -40,12 +40,27 @@ struct RootView: View {
         )) {
             OnboardingView()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .soldoOpenQuickAdd)) { _ in
+            consumeQuickAddRequest()
+        }
+        .task { consumeQuickAddRequest() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
+            consumeQuickAddRequest()
             coordinator.refreshWidgetSnapshot(context: context)
             if obsidian.configuration.autoSync, vault.isConnected {
                 Task { await coordinator.sync(context: context) }
             }
         }
+    }
+
+    /// Picks up a request left by the Control Centre control, a Lock Screen widget
+    /// or a Shortcut — including one made while the app was not running.
+    private func consumeQuickAddRequest() {
+        guard let request = QuickAddInbox.take() else { return }
+        var draft = ExpenseDraft()
+        draft.amountText = request.amountText
+        draft.merchant = request.merchant
+        router.presentAddExpense(draft: draft)
     }
 }

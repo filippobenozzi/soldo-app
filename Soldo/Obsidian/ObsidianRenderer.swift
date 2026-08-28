@@ -10,6 +10,9 @@ struct ExpenseExportItem: Sendable, Identifiable, Equatable {
     var note: String
     var categoryName: String?
     var accountName: String?
+    var placeName: String?
+    var latitude: Double?
+    var longitude: Double?
     /// False when the expense is already in sync and the mode writes incrementally.
     var needsWrite: Bool = true
     /// Vault-relative path this expense was last written to, for `notePerExpense`.
@@ -73,6 +76,18 @@ enum ObsidianRenderer {
         return "\"\(escaped)\""
     }
 
+    /// "45.46420, 9.19000" — the form Obsidian map plugins and Dataview both read.
+    static func coordinateString(latitude: Double, longitude: Double) -> String {
+        String(format: "%.5f, %.5f", latitude, longitude)
+    }
+
+    static func appleMapsURL(for item: ExpenseExportItem) -> String? {
+        guard let latitude = item.latitude, let longitude = item.longitude else { return nil }
+        let query = (item.placeName ?? item.merchant)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return "https://maps.apple.com/?ll=\(latitude),\(longitude)&q=\(query)"
+    }
+
     // MARK: - Block references
 
     /// Obsidian block id used to find, update and delete a line in a daily note.
@@ -121,8 +136,8 @@ enum ObsidianRenderer {
     // MARK: - Single note (Markdown table)
 
     static let tableHeader = """
-    | Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Nota |
-    | --- | --- | ---: | --- | --- | --- | --- | --- |
+    | Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Luogo | Nota |
+    | --- | --- | ---: | --- | --- | --- | --- | --- | --- |
     """
 
     static func tableRow(for item: ExpenseExportItem) -> String {
@@ -134,6 +149,7 @@ enum ObsidianRenderer {
             item.categoryName ?? "",
             item.accountName ?? "",
             item.merchant,
+            item.placeName ?? "",
             item.note,
         ].map(markdownTableCell)
         return "| " + cells.joined(separator: " | ") + " |"
@@ -169,7 +185,7 @@ enum ObsidianRenderer {
 
     // MARK: - CSV
 
-    static let csvHeader = "id,data,ora,importo,valuta,categoria,conto,esercente,nota"
+    static let csvHeader = "id,data,ora,importo,valuta,categoria,conto,esercente,luogo,latitudine,longitudine,nota"
 
     static func csvRow(for item: ExpenseExportItem) -> String {
         [
@@ -181,6 +197,9 @@ enum ObsidianRenderer {
             csvField(item.categoryName ?? ""),
             csvField(item.accountName ?? ""),
             csvField(item.merchant),
+            csvField(item.placeName ?? ""),
+            csvField(item.latitude.map { String(format: "%.6f", $0) } ?? ""),
+            csvField(item.longitude.map { String(format: "%.6f", $0) } ?? ""),
             csvField(item.note),
         ].joined(separator: ",")
     }
@@ -210,6 +229,14 @@ enum ObsidianRenderer {
         if !item.merchant.isEmpty {
             lines.append("esercente: \(yamlScalar(item.merchant))")
         }
+        if let place = item.placeName, !place.isEmpty {
+            lines.append("luogo: \(yamlScalar(place))")
+        }
+        if let latitude = item.latitude, let longitude = item.longitude {
+            // `location` is the key Obsidian's map plugins look for.
+            lines.append("location: [\(String(format: "%.6f", latitude)), \(String(format: "%.6f", longitude))]")
+            lines.append("coordinate: \(yamlScalar(coordinateString(latitude: latitude, longitude: longitude)))")
+        }
         if !configuration.frontMatterTags.isEmpty {
             lines.append("tags:")
             for tag in configuration.frontMatterTags where !tag.isEmpty {
@@ -233,6 +260,16 @@ enum ObsidianRenderer {
         if let account = item.accountName, !account.isEmpty { facts.append("**Conto:** \(account)") }
         lines.append(facts.joined(separator: " · "))
 
+        if let place = item.placeName, !place.isEmpty {
+            if let url = appleMapsURL(for: item) {
+                lines.append("")
+                lines.append("**Luogo:** [\(place)](\(url))")
+            } else {
+                lines.append("")
+                lines.append("**Luogo:** \(place)")
+            }
+        }
+
         if !item.note.isEmpty {
             lines.append("")
             lines.append(item.note)
@@ -245,7 +282,14 @@ enum ObsidianRenderer {
 
     static func dailyNoteLine(for item: ExpenseExportItem) -> String {
         var parts: [String] = ["**\(Money.string(item.amount, currencyCode: item.currencyCode))**"]
-        if !item.merchant.isEmpty { parts.append(item.merchant) }
+        if !item.merchant.isEmpty {
+            parts.append(item.merchant)
+        } else if let place = item.placeName, !place.isEmpty {
+            parts.append(place)
+        }
+        if let place = item.placeName, !place.isEmpty, place != item.merchant, !item.merchant.isEmpty {
+            parts.append(place)
+        }
         if let category = item.categoryName, !category.isEmpty { parts.append(category) }
         if let account = item.accountName, !account.isEmpty { parts.append(account) }
 

@@ -31,7 +31,7 @@ struct HomeView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 90)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(SoldoTheme.groupedBackground)
             .navigationTitle("Soldo")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -93,7 +93,7 @@ struct HomeView: View {
                         systemImage: remaining >= 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
                     )
                     .font(.footnote.weight(.medium))
-                    .foregroundStyle(remaining >= 0 ? SoldoTheme.accent : SoldoTheme.danger)
+                    .foregroundStyle(remaining >= 0 ? SoldoTheme.ink : SoldoTheme.danger)
                     Spacer()
                     Text("su \(Money.string(budget, currencyCode: settings.currencyCode))")
                         .font(.footnote)
@@ -120,7 +120,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: symbol)
                 .font(.caption)
-                .foregroundStyle(SoldoTheme.accent)
+                .foregroundStyle(.secondary)
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -180,11 +180,11 @@ struct HomeView: View {
         } label: {
             Label("Aggiungi spesa", systemImage: "plus")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(SoldoTheme.card)
                 .padding(.vertical, 14)
                 .padding(.horizontal, 26)
-                .background(SoldoTheme.accent, in: Capsule())
-                .shadow(color: SoldoTheme.accent.opacity(0.35), radius: 12, y: 6)
+                .background(SoldoTheme.ink, in: Capsule())
+                .shadow(color: .black.opacity(0.22), radius: 12, y: 6)
         }
         .padding(.bottom, 12)
     }
@@ -237,7 +237,7 @@ struct SyncStateDot: View {
             Label("Sincronizzata", systemImage: "checkmark.circle.fill")
                 .labelStyle(.iconOnly)
                 .font(.caption2)
-                .foregroundStyle(SoldoTheme.accent.opacity(0.7))
+                .foregroundStyle(.tertiary)
         case .pending:
             Label("In attesa", systemImage: "clock")
                 .labelStyle(.iconOnly)

@@ -41,6 +41,9 @@ final class AppSettings {
         static let defaultAccountID = "settings.defaultAccountID"
         static let hapticsEnabled = "settings.hapticsEnabled"
         static let quickAddClosesAfterSave = "settings.quickAddClosesAfterSave"
+        static let useCategoryColors = "settings.useCategoryColors"
+        static let detectLocation = "settings.detectLocation"
+        static let autoCategoryFromPlace = "settings.autoCategoryFromPlace"
     }
 
     init(defaults: UserDefaults = AppGroup.defaults) {
@@ -53,6 +56,9 @@ final class AppSettings {
         self.defaultAccountID = (defaults.string(forKey: Key.defaultAccountID)).flatMap(UUID.init(uuidString:))
         self.hapticsEnabled = defaults.object(forKey: Key.hapticsEnabled) as? Bool ?? true
         self.quickAddClosesAfterSave = defaults.object(forKey: Key.quickAddClosesAfterSave) as? Bool ?? true
+        self.useCategoryColors = defaults.object(forKey: Key.useCategoryColors) as? Bool ?? false
+        self.detectLocation = defaults.object(forKey: Key.detectLocation) as? Bool ?? true
+        self.autoCategoryFromPlace = defaults.object(forKey: Key.autoCategoryFromPlace) as? Bool ?? true
     }
 
     var currencyCode: String {
@@ -92,5 +98,21 @@ final class AppSettings {
 
     var quickAddClosesAfterSave: Bool {
         didSet { defaults.set(quickAddClosesAfterSave, forKey: Key.quickAddClosesAfterSave) }
+    }
+
+    /// Off by default: the app is monochrome, and category colours only show when
+    /// the user asks for them.
+    var useCategoryColors: Bool {
+        didSet { defaults.set(useCategoryColors, forKey: Key.useCategoryColors) }
+    }
+
+    /// Look up where the user is when a new expense is created.
+    var detectLocation: Bool {
+        didSet { defaults.set(detectLocation, forKey: Key.detectLocation) }
+    }
+
+    /// Pick the spending category from the kind of place that was detected.
+    var autoCategoryFromPlace: Bool {
+        didSet { defaults.set(autoCategoryFromPlace, forKey: Key.autoCategoryFromPlace) }
     }
 }

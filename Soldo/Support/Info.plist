@@ -20,6 +20,12 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Soldo usa la posizione solo quando registri una spesa, per riconoscere il negozio e proporre la categoria giusta. Non c'è alcun tracciamento in background.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Serve per inquadrare lo scontrino e leggerne importo e negozio. Le foto restano sul dispositivo e non vengono salvate.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Serve per scegliere la foto di uno scontrino già scattato e leggerne importo e negozio.</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.finance</string>
 	<key>LSRequiresIPhoneOS</key>

@@ -85,6 +85,9 @@ final class SyncCoordinator {
                 note: expense.note,
                 categoryName: expense.category?.name,
                 accountName: expense.account?.name,
+                placeName: expense.placeName,
+                latitude: expense.latitude,
+                longitude: expense.longitude,
                 needsWrite: expense.syncState != .synced,
                 existingRelativePath: expense.obsidianRelativePath
             )
@@ -200,7 +203,8 @@ final class SyncCoordinator {
             topCategories: Array(topCategories),
             pendingSyncCount: expenses.filter { $0.syncState == .pending || $0.syncState == .failed }.count,
             vaultConnected: vault.isConnected,
-            generatedAt: .now
+            generatedAt: .now,
+            useCategoryColors: settings.useCategoryColors
         )
 
         WidgetSnapshotStore.write(snapshot)

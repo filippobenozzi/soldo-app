@@ -144,7 +144,7 @@ struct ObsidianSettingsView: View {
                     Spacer()
                     if let accessCheck {
                         Image(systemName: accessCheck ? "checkmark.circle.fill" : "xmark.octagon.fill")
-                            .foregroundStyle(accessCheck ? SoldoTheme.accent : SoldoTheme.danger)
+                            .foregroundStyle(accessCheck ? SoldoTheme.ink : SoldoTheme.danger)
                     }
                 }
 

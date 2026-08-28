@@ -77,6 +77,20 @@ struct AddExpenseIntent: AppIntent {
             account: resolvedAccount
         )
         context.insert(expense)
+
+        // Best effort: an intent run from an automation still gets a place when the
+        // user has granted location access, but never blocks on it.
+        if settings.detectLocation, LocationService.shared.isAuthorized {
+            if let place = await LocationService.shared.currentPlace() {
+                expense.apply(place: place)
+                if expense.merchant.isEmpty { expense.merchant = place.name }
+                if resolvedCategory == nil, settings.autoCategoryFromPlace {
+                    let categories = (try? context.fetch(FetchDescriptor<SpendingCategory>())) ?? []
+                    expense.category = PlaceCategoryMapper.match(place, in: categories)
+                }
+            }
+        }
+
         try? context.save()
 
         await SyncCoordinator.shared.sync(context: context)
@@ -128,6 +142,10 @@ struct OpenAddExpenseIntent: AppIntent {
             draft.amountText = Money.machineString(Decimal(amount)).replacingOccurrences(of: ".", with: ",")
         }
         draft.merchant = merchant ?? ""
+
+        // Both paths matter: the router covers a warm launch, the inbox covers a
+        // cold one where the UI is not listening yet.
+        QuickAddInbox.post(amountText: draft.amountText, merchant: draft.merchant)
         AppRouter.shared.presentAddExpense(draft: draft)
         return .result()
     }

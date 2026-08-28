@@ -54,7 +54,7 @@ struct InsightsView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 24)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(SoldoTheme.groupedBackground)
             .navigationTitle("Analisi")
         }
     }
@@ -78,7 +78,7 @@ struct InsightsView: View {
                         systemImage: delta >= 0 ? "arrow.up.right" : "arrow.down.right"
                     )
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(delta >= 0 ? SoldoTheme.danger : SoldoTheme.accent)
+                    .foregroundStyle(delta >= 0 ? SoldoTheme.danger : .secondary)
                 }
                 Text("\(scoped.count) \(scoped.count == 1 ? "spesa" : "spese")")
                     .font(.caption)
@@ -113,7 +113,7 @@ struct InsightsView: View {
                         x: .value("Mese", item.month, unit: .month),
                         y: .value("Totale", NSDecimalNumber(decimal: item.amount).doubleValue)
                     )
-                    .foregroundStyle(SoldoTheme.accent.gradient)
+                    .foregroundStyle(SoldoTheme.ink)
                     .cornerRadius(4)
                 }
                 .chartXAxis {
@@ -129,7 +129,7 @@ struct InsightsView: View {
                         x: .value("Giorno", item.date, unit: .day),
                         y: .value("Totale", NSDecimalNumber(decimal: item.amount).doubleValue)
                     )
-                    .foregroundStyle(SoldoTheme.accent.gradient)
+                    .foregroundStyle(SoldoTheme.ink)
                     .cornerRadius(3)
                 }
                 .chartXAxis {
@@ -148,13 +148,13 @@ struct InsightsView: View {
             Text("Per categoria")
                 .font(.headline)
 
-            Chart(categoryTotals) { item in
+            Chart(Array(categoryTotals.enumerated()), id: \.element.id) { index, item in
                 SectorMark(
                     angle: .value("Totale", NSDecimalNumber(decimal: item.amount).doubleValue),
                     innerRadius: .ratio(0.62),
                     angularInset: 1.5
                 )
-                .foregroundStyle(Color(hex: item.colorHex))
+                .foregroundStyle(SoldoTheme.chartTint(item.colorHex, index: index, count: categoryTotals.count))
                 .cornerRadius(4)
             }
             .frame(height: 190)

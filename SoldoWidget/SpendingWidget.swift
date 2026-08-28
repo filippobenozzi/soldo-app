@@ -26,9 +26,18 @@ struct SpendingWidgetView: View {
     let entry: SnapshotEntry
 
     private var snapshot: WidgetSnapshot { entry.snapshot }
-    private var accent: Color { Color(hex: "27AE60") }
+    private var accent: Color { .primary }
+    private var danger: Color { Color(uiColor: .systemRed) }
 
     var body: some View {
+        content
+            // Applied here so the Lock Screen families deep-link too, not just the
+            // Home Screen ones.
+            .widgetURL(URL(string: "soldo://add"))
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch family {
         case .accessoryInline:
             Text("\(Money.compactString(snapshot.monthTotal, currencyCode: snapshot.currencyCode)) questo mese")
@@ -87,7 +96,7 @@ struct SpendingWidgetView: View {
                 if let progress = snapshot.budgetProgress {
                     Text("\(Int((progress * 100).rounded()))%")
                         .font(.system(.caption2, design: .rounded, weight: .bold))
-                        .foregroundStyle(progress > 1 ? Color(hex: "C0392B") : .secondary)
+                        .foregroundStyle(progress > 1 ? danger : .secondary)
                 }
             }
 
@@ -103,14 +112,13 @@ struct SpendingWidgetView: View {
 
             if let progress = snapshot.budgetProgress {
                 ProgressView(value: progress)
-                    .tint(progress > 1 ? Color(hex: "C0392B") : accent)
+                    .tint(progress > 1 ? danger : accent)
             } else {
                 Text("Oggi \(Money.compactString(snapshot.todayTotal, currencyCode: snapshot.currencyCode))")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
         }
-        .widgetURL(URL(string: "soldo://add"))
     }
 
     private var mediumView: some View {
@@ -129,7 +137,7 @@ struct SpendingWidgetView: View {
                          ? "Restano \(Money.compactString(remaining, currencyCode: snapshot.currencyCode))"
                          : "Sforato di \(Money.compactString(-remaining, currencyCode: snapshot.currencyCode))")
                         .font(.caption2)
-                        .foregroundStyle(remaining >= 0 ? accent : Color(hex: "C0392B"))
+                        .foregroundStyle(remaining >= 0 ? .secondary : danger)
                 }
 
                 Spacer(minLength: 0)
@@ -156,7 +164,7 @@ struct SpendingWidgetView: View {
                         HStack(spacing: 6) {
                             Image(systemName: slice.symbolName)
                                 .font(.caption2)
-                                .foregroundStyle(Color(hex: slice.colorHex))
+                                .foregroundStyle(InkPalette.tint(slice.colorHex, colorful: snapshot.isColorful))
                                 .frame(width: 14)
                             Text(slice.name)
                                 .font(.caption2)
@@ -172,7 +180,6 @@ struct SpendingWidgetView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .widgetURL(URL(string: "soldo://add"))
     }
 
     private func miniStat(_ title: String, _ value: Decimal) -> some View {

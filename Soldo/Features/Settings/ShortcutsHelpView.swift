@@ -59,7 +59,7 @@ struct ShortcutsHelpView: View {
     private func helpRow(symbol: String, title: String, detail: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: symbol)
-                .foregroundStyle(SoldoTheme.accent)
+                .foregroundStyle(SoldoTheme.ink)
                 .frame(width: 24)
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 3) {
@@ -74,9 +74,9 @@ struct ShortcutsHelpView: View {
         HStack(alignment: .top, spacing: 12) {
             Text("\(number)")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(SoldoTheme.card)
                 .frame(width: 22, height: 22)
-                .background(SoldoTheme.accent, in: Circle())
+                .background(SoldoTheme.ink, in: Circle())
             Text(text)
                 .font(.subheadline)
         }

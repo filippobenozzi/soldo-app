@@ -27,6 +27,15 @@ final class Expense {
     var category: SpendingCategory?
     var account: PaymentAccount?
 
+    // MARK: Where it happened
+
+    var latitude: Double?
+    var longitude: Double?
+    var placeName: String?
+    /// Raw `MKPointOfInterestCategory` identifier, kept so the category can be
+    /// re-derived later without another Maps lookup.
+    var placeCategoryIdentifier: String?
+
     // MARK: Obsidian sync bookkeeping
 
     var syncStateRaw: String = SyncState.pending.rawValue
@@ -62,6 +71,25 @@ final class Expense {
     var syncState: SyncState {
         get { SyncState(rawValue: syncStateRaw) ?? .pending }
         set { syncStateRaw = newValue.rawValue }
+    }
+
+    var hasLocation: Bool {
+        latitude != nil && longitude != nil
+    }
+
+    /// Applies a resolved place to the expense.
+    func apply(place: DetectedPlace?) {
+        guard let place else {
+            latitude = nil
+            longitude = nil
+            placeName = nil
+            placeCategoryIdentifier = nil
+            return
+        }
+        latitude = place.latitude
+        longitude = place.longitude
+        placeName = place.name
+        placeCategoryIdentifier = place.categoryIdentifier
     }
 
     var displayTitle: String {

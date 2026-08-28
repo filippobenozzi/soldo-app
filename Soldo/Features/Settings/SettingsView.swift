@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(ObsidianVaultLink.self) private var vault
     @Environment(ObsidianSettingsStore.self) private var obsidian
     @Environment(SyncCoordinator.self) private var coordinator
+    @Environment(LocationService.self) private var locationService
     @Environment(\.modelContext) private var context
 
     @State private var budgetText = ""
@@ -41,7 +42,7 @@ struct SettingsView: View {
                                 Text("Obsidian")
                                 Text(vault.isConnected ? (vault.displayName ?? "Vault collegato") : "Non collegato")
                                     .font(.caption)
-                                    .foregroundStyle(vault.isConnected ? SoldoTheme.accent : .secondary)
+                                    .foregroundStyle(vault.isConnected ? SoldoTheme.ink : .secondary)
                             }
                         }
                     }
@@ -79,6 +80,39 @@ struct SettingsView: View {
                     }
 
                     Toggle("Feedback aptico", isOn: $settings.hapticsEnabled)
+                }
+
+                Section {
+                    Toggle("Rileva il luogo", isOn: $settings.detectLocation)
+                    Toggle("Categoria dal tipo di luogo", isOn: $settings.autoCategoryFromPlace)
+                        .disabled(!settings.detectLocation)
+
+                    LabeledContent("Autorizzazione", value: locationService.statusDescription)
+                        .font(.caption)
+
+                    if locationService.authorizationStatus == .notDetermined {
+                        Button("Consenti l'accesso alla posizione") {
+                            locationService.requestPermission()
+                        }
+                    } else if locationService.isDenied {
+                        Button("Apri Impostazioni iOS") {
+                            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                } header: {
+                    Text("Posizione")
+                } footer: {
+                    Text("Quando apri una nuova spesa, Soldo cerca il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto. La posizione viene letta solo in quel momento, resta sul dispositivo e finisce nel vault insieme alla spesa.")
+                }
+
+                Section {
+                    Toggle("Icone a colori", isOn: $settings.useCategoryColors)
+                        .onChange(of: settings.useCategoryColors) { _, _ in
+                            coordinator.refreshWidgetSnapshot(context: context)
+                        }
+                } footer: {
+                    Text("Soldo è pensato in bianco e nero. Attiva questa opzione per vedere categorie e conti con il colore che hai scelto per ciascuno.")
                 }
 
                 Section("Dati") {

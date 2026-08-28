@@ -1,12 +1,15 @@
+import PhotosUI
 import SwiftData
 import SwiftUI
 
 /// The fast-logging screen: a big amount, a numeric keypad and one tap per field.
+/// It can also fill itself in — from where you are, or from a scanned receipt.
 struct AddExpenseView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Environment(AppSettings.self) private var settings
     @Environment(SyncCoordinator.self) private var coordinator
+    @Environment(LocationService.self) private var locationService
 
     @Query(sort: \SpendingCategory.sortIndex) private var allCategories: [SpendingCategory]
     @Query(sort: \PaymentAccount.sortIndex) private var allAccounts: [PaymentAccount]
@@ -24,9 +27,28 @@ struct AddExpenseView: View {
     @State private var isConfirmingDelete = false
     @State private var isShowingDatePicker = false
 
+    // Where the money was spent.
+    @State private var place: DetectedPlace?
+    @State private var nearbyPlaces: [DetectedPlace] = []
+    @State private var isPickingPlace = false
+    @State private var isLocating = false
+    @State private var userChoseCategory = false
+
+    // Receipt scanning.
+    @State private var isScanningReceipt = false
+    @State private var receiptPhoto: PhotosPickerItem?
+    @State private var receiptPhase: ReceiptPhase = .idle
+
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable { case merchant, note }
+
+    private enum ReceiptPhase: Equatable {
+        case idle
+        case reading
+        case filled(String)
+        case failed(String)
+    }
 
     init(draft: ExpenseDraft? = nil) {
         self.editingExpense = nil
@@ -52,8 +74,10 @@ struct AddExpenseView: View {
                 ScrollView {
                     VStack(spacing: 18) {
                         amountDisplay
+                        receiptBanner
                         categoryPicker
                         detailsCard
+                        placeCard
                         if editingExpense != nil { deleteButton }
                     }
                     .padding(.horizontal)
@@ -74,18 +98,47 @@ struct AddExpenseView: View {
 
                 saveButton
             }
-            .background(Color(.systemGroupedBackground))
+            .background(SoldoTheme.groupedBackground)
             .navigationTitle(editingExpense == nil ? "Nuova spesa" : "Modifica spesa")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annulla") { dismiss() }
                 }
+                ToolbarItem(placement: .topBarTrailing) { receiptMenu }
             }
             .animation(.snappy(duration: 0.22), value: focusedField)
+            .animation(.snappy(duration: 0.22), value: receiptPhase)
         }
         .presentationDragIndicator(.visible)
         .onAppear(perform: loadInitialStateIfNeeded)
+        .task { await autoDetectPlaceIfNeeded() }
+        .fullScreenCover(isPresented: $isScanningReceipt) {
+            DocumentScannerView(
+                onFinish: { images in
+                    isScanningReceipt = false
+                    Task { await process(images: images) }
+                },
+                onCancel: { isScanningReceipt = false }
+            )
+            .ignoresSafeArea()
+        }
+        .onChange(of: receiptPhoto) { _, item in
+            guard let item else { return }
+            Task { await processPickedPhoto(item) }
+        }
+        .sheet(isPresented: $isPickingPlace) {
+            PlacePickerView(
+                places: nearbyPlaces,
+                selected: place,
+                isLoading: isLocating,
+                onSelect: { chosen in
+                    apply(place: chosen, overwriteMerchant: true)
+                    isPickingPlace = false
+                },
+                onRefresh: { await refreshNearbyPlaces() }
+            )
+        }
         .confirmationDialog("Eliminare questa spesa?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
             Button("Elimina", role: .destructive, action: deleteExpense)
             Button("Annulla", role: .cancel) {}
@@ -125,6 +178,72 @@ struct AddExpenseView: View {
         .soldoCard()
     }
 
+    private var receiptMenu: some View {
+        Menu {
+            if DocumentScannerView.isAvailable {
+                Button {
+                    isScanningReceipt = true
+                } label: {
+                    Label("Inquadra lo scontrino", systemImage: "doc.viewfinder")
+                }
+            }
+            PhotosPicker(selection: $receiptPhoto, matching: .images) {
+                Label("Scegli una foto", systemImage: "photo.on.rectangle")
+            }
+        } label: {
+            Image(systemName: receiptPhase == .reading ? "hourglass" : "doc.text.viewfinder")
+                .font(.title3)
+        }
+        .accessibilityLabel("Scansiona scontrino")
+    }
+
+    @ViewBuilder
+    private var receiptBanner: some View {
+        switch receiptPhase {
+        case .idle:
+            EmptyView()
+
+        case .reading:
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("Sto leggendo lo scontrino…")
+                    .font(.subheadline)
+                Spacer()
+            }
+            .soldoCard(padding: 12)
+
+        case .filled(let summary):
+            HStack(spacing: 10) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(SoldoTheme.ink)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Compilato dallo scontrino")
+                        .font(.subheadline.weight(.medium))
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 4)
+                Button("Chiudi") { receiptPhase = .idle }
+                    .font(.caption.weight(.semibold))
+            }
+            .soldoCard(padding: 12)
+
+        case .failed(let message):
+            HStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(SoldoTheme.danger)
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 4)
+                Button("Chiudi") { receiptPhase = .idle }
+                    .font(.caption.weight(.semibold))
+            }
+            .soldoCard(padding: 12)
+        }
+    }
+
     private var categoryPicker: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Categoria")
@@ -141,6 +260,7 @@ struct AddExpenseView: View {
                             isSelected: selectedCategoryID == category.id
                         ) {
                             Haptics.tap()
+                            userChoseCategory = true
                             selectedCategoryID = selectedCategoryID == category.id ? nil : category.id
                         }
                     }
@@ -207,6 +327,89 @@ struct AddExpenseView: View {
         .soldoCard()
     }
 
+    @ViewBuilder
+    private var placeCard: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Image(systemName: place == nil ? "mappin.slash" : "mappin.circle.fill")
+                    .foregroundStyle(place == nil ? .secondary : SoldoTheme.ink)
+                    .frame(width: 22)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    if let place {
+                        Text(place.name)
+                            .font(.subheadline.weight(.medium))
+                            .lineLimit(1)
+                        if !place.subtitle.isEmpty {
+                            Text(place.subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    } else if isLocating {
+                        Text("Cerco dove sei…")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Nessun luogo")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text(locationHint)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(2)
+                    }
+                }
+
+                Spacer(minLength: 4)
+
+                if isLocating {
+                    ProgressView()
+                } else if locationService.isAuthorized {
+                    Button {
+                        Haptics.tap()
+                        isPickingPlace = true
+                        Task { await refreshNearbyPlaces() }
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                } else if locationService.authorizationStatus == .notDetermined {
+                    Button("Consenti") {
+                        locationService.requestPermission()
+                    }
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.bordered)
+                }
+            }
+            .padding(.vertical, 12)
+
+            if place != nil {
+                Divider()
+                Button(role: .destructive) {
+                    place = nil
+                } label: {
+                    Label("Rimuovi il luogo", systemImage: "xmark.circle")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.vertical, 10)
+            }
+        }
+        .soldoCard()
+    }
+
+    private var locationHint: String {
+        if locationService.isDenied {
+            return "Accesso negato. Attivalo in Impostazioni iOS › Soldo › Posizione."
+        }
+        if !settings.detectLocation {
+            return "Rilevamento disattivato in Impostazioni › Posizione."
+        }
+        return "Tocca Consenti per riconoscere il negozio dove sei."
+    }
+
     private var deleteButton: some View {
         Button(role: .destructive) {
             isConfirmingDelete = true
@@ -221,12 +424,9 @@ struct AddExpenseView: View {
     private var saveButton: some View {
         Button(action: save) {
             Text(editingExpense == nil ? "Salva spesa" : "Salva modifiche")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(SoldoTheme.accent)
+        .buttonStyle(InkButtonStyle())
+        .opacity(parsedAmount == nil ? 0.4 : 1)
         .disabled(parsedAmount == nil)
         .padding(.horizontal)
         .padding(.top, 8)
@@ -235,7 +435,7 @@ struct AddExpenseView: View {
     }
 
     private func chip(title: String, symbol: String, hex: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        let color = Color(hex: hex)
+        let tint = SoldoTheme.tint(hex)
         return Button(action: action) {
             HStack(spacing: 6) {
                 Image(systemName: symbol)
@@ -246,8 +446,8 @@ struct AddExpenseView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
-            .foregroundStyle(isSelected ? .white : color)
-            .background(isSelected ? color : color.opacity(0.14), in: Capsule())
+            .foregroundStyle(isSelected ? SoldoTheme.card : tint)
+            .background(isSelected ? SoldoTheme.ink : SoldoTheme.badge, in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -273,7 +473,6 @@ struct AddExpenseView: View {
 
     private func appendDigit(_ digit: String) {
         Haptics.tap()
-        // Cap the decimals at two, and don't let the integer part run away.
         if let separatorIndex = amountText.firstIndex(where: { $0 == "," }) {
             let decimals = amountText.distance(from: separatorIndex, to: amountText.endIndex) - 1
             guard decimals < 2 else { return }
@@ -296,6 +495,107 @@ struct AddExpenseView: View {
         amountText.removeLast()
     }
 
+    // MARK: - Location
+
+    private func autoDetectPlaceIfNeeded() async {
+        guard editingExpense == nil, settings.detectLocation, place == nil else { return }
+
+        if locationService.authorizationStatus == .notDetermined {
+            locationService.requestPermission()
+            // Give the permission sheet a moment before the first lookup.
+            try? await Task.sleep(for: .seconds(1))
+        }
+        guard locationService.isAuthorized else { return }
+
+        isLocating = true
+        let places = await locationService.nearbyPlaces(limit: 12)
+        nearbyPlaces = places
+        isLocating = false
+
+        if place == nil, let closest = places.first {
+            apply(place: closest, overwriteMerchant: false)
+        }
+    }
+
+    private func refreshNearbyPlaces() async {
+        isLocating = true
+        nearbyPlaces = await locationService.nearbyPlaces(limit: 15)
+        isLocating = false
+    }
+
+    /// Applies a place, without stepping on anything the user typed or picked.
+    private func apply(place newPlace: DetectedPlace, overwriteMerchant: Bool) {
+        place = newPlace
+
+        if overwriteMerchant || merchant.trimmingCharacters(in: .whitespaces).isEmpty {
+            merchant = newPlace.name
+        }
+
+        guard settings.autoCategoryFromPlace, !userChoseCategory,
+              let match = PlaceCategoryMapper.match(newPlace, in: categories)
+        else { return }
+        selectedCategoryID = match.id
+    }
+
+    // MARK: - Receipt
+
+    private func processPickedPhoto(_ item: PhotosPickerItem) async {
+        receiptPhase = .reading
+        defer { receiptPhoto = nil }
+
+        guard let data = try? await item.loadTransferable(type: Data.self),
+              let image = UIImage(data: data) else {
+            receiptPhase = .failed("Non riesco a leggere quell'immagine.")
+            return
+        }
+        await process(images: [image])
+    }
+
+    private func process(images: [UIImage]) async {
+        guard let image = images.first else { return }
+        receiptPhase = .reading
+
+        do {
+            let lines = try await ReceiptTextRecognizer.recognizeLines(in: image)
+            let scan = ReceiptParser.parse(lines: lines)
+            guard !scan.isEmpty else {
+                receiptPhase = .failed("Non ho riconosciuto importo né negozio. Riprova con più luce.")
+                return
+            }
+            await apply(scan: scan)
+        } catch {
+            receiptPhase = .failed(error.localizedDescription)
+        }
+    }
+
+    private func apply(scan: ReceiptScan) async {
+        var filled: [String] = []
+
+        if let total = scan.total, total > 0 {
+            amountText = Money.machineString(total).replacingOccurrences(of: ".", with: ",")
+            filled.append("importo")
+        }
+        if let scanned = scan.merchant, !scanned.isEmpty {
+            merchant = scanned
+            filled.append("negozio")
+        }
+        if let scannedDate = scan.date {
+            date = scannedDate
+            filled.append("data")
+        }
+
+        receiptPhase = .filled(filled.isEmpty ? "Nessun campo riconosciuto" : filled.joined(separator: ", "))
+        Haptics.success()
+
+        // Turn the printed name and street into a real place, so the expense gets
+        // coordinates and a category just like a GPS-detected one.
+        guard let query = scan.placeQuery else { return }
+        if let resolved = await locationService.place(matching: query, near: locationService.lastLocation) {
+            apply(place: resolved, overwriteMerchant: false)
+            receiptPhase = .filled((filled + ["luogo"]).joined(separator: ", "))
+        }
+    }
+
     // MARK: - Loading and saving
 
     private func loadInitialStateIfNeeded() {
@@ -309,6 +609,15 @@ struct AddExpenseView: View {
             date = expense.date
             selectedCategoryID = expense.category?.id
             selectedAccountID = expense.account?.id
+            userChoseCategory = true
+            if let latitude = expense.latitude, let longitude = expense.longitude {
+                place = DetectedPlace(
+                    name: expense.placeName ?? expense.merchant,
+                    categoryIdentifier: expense.placeCategoryIdentifier,
+                    latitude: latitude,
+                    longitude: longitude
+                )
+            }
             return
         }
 
@@ -341,6 +650,7 @@ struct AddExpenseView: View {
             expense.category = category
             expense.account = account
             expense.currencyCode = settings.currencyCode
+            expense.apply(place: place)
             expense.touch()
         } else {
             let expense = Expense(
@@ -352,6 +662,7 @@ struct AddExpenseView: View {
                 category: category,
                 account: account
             )
+            expense.apply(place: place)
             context.insert(expense)
         }
 
@@ -367,6 +678,77 @@ struct AddExpenseView: View {
         coordinator.dataDidChange(context: context)
         Haptics.warning()
         dismiss()
+    }
+}
+
+/// Lets the user correct the automatic guess by picking another nearby place.
+private struct PlacePickerView: View {
+    let places: [DetectedPlace]
+    let selected: DetectedPlace?
+    let isLoading: Bool
+    let onSelect: (DetectedPlace) -> Void
+    let onRefresh: () async -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if places.isEmpty, !isLoading {
+                    EmptyStateView(
+                        symbol: "mappin.slash",
+                        title: "Nessun luogo qui intorno",
+                        message: "Apple Maps non conosce posti in questa zona, oppure il segnale GPS è debole."
+                    )
+                    .listRowBackground(Color.clear)
+                }
+
+                ForEach(places) { candidate in
+                    Button {
+                        onSelect(candidate)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(candidate.name)
+                                    .foregroundStyle(.primary)
+                                if !candidate.subtitle.isEmpty {
+                                    Text(candidate.subtitle)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                            if candidate.id == selected?.id {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(SoldoTheme.ink)
+                            }
+                        }
+                    }
+                }
+            }
+            .overlay {
+                if isLoading, places.isEmpty {
+                    ProgressView("Cerco qui intorno…")
+                }
+            }
+            .navigationTitle("Dove sei")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Chiudi") { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task { await onRefresh() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 
@@ -420,7 +802,7 @@ private struct Keypad: View {
             .frame(height: 50)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
+                    .fill(SoldoTheme.card)
             )
         }
         .buttonStyle(.plain)

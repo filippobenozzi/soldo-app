@@ -27,12 +27,55 @@ Soldo è un progetto indipendente, non affiliato con SyncSpend né con i suoi au
 
 - **Registrazione rapida** — tastierino numerico dedicato, categorie e conti a portata di pollice, data con scorciatoie Oggi/Ieri.
 - **Sincronizzazione Obsidian** in quattro formati, con anteprima dal vivo nelle impostazioni.
+- **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli. Dal nome e dalla via stampati Soldo risale al posto, quindi alle coordinate e alla categoria.
+- **Luogo automatico** — quando apri una nuova spesa, Soldo riconosce il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto.
 - **Widget** — totale del mese e budget (piccolo, medio), ultime spese (medio, grande), widget per schermata di blocco e controllo del Centro di Controllo per l'inserimento rapido (iOS 18+).
 - **Comandi rapidi** — azioni `Aggiungi spesa`, `Apri nuova spesa`, `Totale speso`, `Sincronizza`, utilizzabili con Siri, Tocco posteriore, tasto Azione e automazioni Apple Pay.
 - **Analisi** — grafici per giorno, per mese e per categoria, confronto col periodo precedente e proiezione di fine mese.
 - **Budget mensile** opzionale, con anello di avanzamento su Home e nei widget.
 - **Categorie e conti** personalizzabili: nome, icona SF Symbol, colore, ordinamento, archiviazione.
 - **Backup JSON** esportabile e importabile, opzionalmente scritto anche nel vault.
+
+## Aspetto
+
+Soldo è **in bianco e nero**, come l'app da cui prende le mosse: sfondo `#F5F5F5`,
+schede bianche, inchiostro nero, badge `#EDEDED`, e nessun colore d'accento. In modo
+scuro tutto si inverte. Le categorie hanno comunque un colore, usato solo se attivi
+*Impostazioni › Icone a colori*; altrimenti i grafici a torta usano una scala di grigi.
+
+## Scontrini e luoghi
+
+**Scansione.** Dal pulsante in alto a destra della schermata di inserimento puoi
+inquadrare uno scontrino o scegliere una foto. Soldo usa lo scanner di sistema
+(ritaglio e raddrizzamento automatici) e poi Vision per il riconoscimento del testo,
+in italiano e inglese.
+
+Il parser ricostruisce le righe stampate unendo i frammenti che stanno alla stessa
+altezza — è questo che gli permette di leggere `TOTALE ... 12,50` come una riga sola —
+e poi cerca:
+
+- **l'importo**, dando la precedenza a `TOTALE COMPLESSIVO`, `TOTALE DA PAGARE`,
+  `IMPORTO PAGATO`, `TOTALE EURO`, `TOTAL`; ignorando `SUBTOTALE`, `IVA`, `SCONTO`,
+  `RESTO`, `ARROTONDAMENTO`; e leggendo la riga successiva quando la cifra è a capo.
+  Se non trova nessuna parola chiave usa l'importo più alto dello scontrino;
+- **il negozio**, dalle prime righe, scartando indirizzi, partite IVA e diciture fiscali;
+- **la data e l'ora**, in formato italiano o americano;
+- **via, CAP e città**, e la partita IVA.
+
+**Dal negozio al luogo.** Con nome e via, Soldo interroga Apple Maps e ottiene il
+posto: coordinate, categoria del punto di interesse e quindi la categoria di spesa.
+
+**Dove sei.** Se dai il permesso, aprendo una nuova spesa Soldo cerca i punti di
+interesse nel raggio di 160 metri e propone il più vicino. Puoi cambiarlo dall'elenco
+dei posti vicini. La corrispondenza fra tipo di posto e categoria è in
+[`PlaceCategoryTable.swift`](Soldo/Location/PlaceCategoryTable.swift): supermercati e
+panetterie → Spesa, ristoranti e bar → Ristoranti, distributori e parcheggi →
+Trasporti, farmacie → Salute, e così via. Il confronto avviene sul *nome* della
+categoria, quindi continua a funzionare anche se rinomini le tue.
+
+Nulla di tutto questo esce dal telefono se non verso Apple Maps per la singola
+ricerca: la posizione viene letta solo mentre registri una spesa, mai in background,
+e le foto degli scontrini non vengono salvate.
 
 ## Come Soldo scrive nel vault
 
@@ -57,6 +100,9 @@ valuta: EUR
 categoria: Spesa
 conto: Carta
 esercente: Coop
+luogo: Coop Via Verdi
+location: [44.493810, 11.342720]
+coordinate: "44.49381, 11.34272"
 tags:
   - spesa
 ---
@@ -65,8 +111,13 @@ tags:
 
 **Data:** 2026-08-28 14:32 · **Categoria:** Spesa · **Conto:** Carta
 
+**Luogo:** [Coop Via Verdi](https://maps.apple.com/?ll=44.49381,11.34272&q=Coop)
+
 Pane e latte
 ```
+
+`location` è la chiave che leggono i plugin di mappa di Obsidian, quindi le tue spese
+compaiono da sole sulla mappa del vault.
 
 Modificando la spesa in Soldo la nota viene aggiornata; se cambia il nome del file,
 la vecchia nota viene rimossa. Eliminando la spesa, la nota viene cancellata.
@@ -78,9 +129,9 @@ la vecchia nota viene rimossa. Eliminando la spesa, la nota viene cancellata.
 `Soldo/Spese.md`
 
 ```markdown
-| Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Nota |
-| --- | --- | ---: | --- | --- | --- | --- | --- |
-| 2026-08-28 | 14:32 | 12.50 | EUR | Spesa | Carta | Coop | Pane e latte |
+| Data | Ora | Importo | Valuta | Categoria | Conto | Esercente | Luogo | Nota |
+| --- | --- | ---: | --- | --- | --- | --- | --- | --- |
+| 2026-08-28 | 14:32 | 12.50 | EUR | Spesa | Carta | Coop | Coop Via Verdi | Pane e latte |
 ```
 
 Il file viene **rigenerato per intero** a ogni sincronizzazione, così modifiche ed
@@ -110,8 +161,8 @@ linkarla da altre note.
 `Soldo/Spese.csv`
 
 ```csv
-id,data,ora,importo,valuta,categoria,conto,esercente,nota
-"6f1a…","2026-08-28","14:32","12.50","EUR","Spesa","Carta","Coop","Pane e latte"
+id,data,ora,importo,valuta,categoria,conto,esercente,luogo,latitudine,longitudine,nota
+"6f1a…","2026-08-28","14:32","12.50","EUR","Spesa","Carta","Coop","Coop Via Verdi","44.493810","11.342720","Pane e latte"
 ```
 
 Come la nota unica, viene rigenerato a ogni sincronizzazione.
@@ -148,6 +199,7 @@ AltStore o Sideloadly.
 - Il widget legge i dati tramite l'**App Group** `group.im.filippo.soldo`. Se il
   metodo di sideloading che usi non riesce a registrarlo, l'app continua a
   funzionare normalmente e solo il widget resta vuoto.
+- Il controllo «Nuova spesa» del Centro di Controllo richiede iOS 18 o successivo.
 
 ## Compilare in locale
 
@@ -172,7 +224,8 @@ xcodebuild archive -project Soldo.xcodeproj -scheme Soldo -configuration Release
 ./Tools/package-ipa.sh build/Soldo.xcarchive artifacts/Soldo.ipa
 ```
 
-Le verifiche sulla logica di export Obsidian girano senza simulatore:
+Le verifiche — export Obsidian su cartelle vere, parser degli scontrini su testo di
+scontrini reali, tabella dei luoghi — girano senza simulatore:
 
 ```bash
 ./Tools/run-checks.sh
@@ -209,10 +262,12 @@ Soldo/
   App/             entry point, routing, sincronizzazione, backup, statistiche
   Models/          modelli SwiftData (spese, categorie, conti)
   Obsidian/        bookmark del vault, renderer Markdown/CSV, motore di scrittura
+  Location/        CoreLocation, ricerca luoghi, tabella tipo-di-posto → categoria
+  Receipt/         scanner di sistema, OCR Vision, parser degli scontrini
   Intents/         azioni per Comandi rapidi e Siri
   Features/        schermate SwiftUI
 SoldoWidget/       estensione WidgetKit e controllo del Centro di Controllo
-Tests/             verifiche della logica di export, eseguibili senza simulatore
+Tests/             verifiche di export, parser scontrini e mappatura luoghi
 Tools/             script di bootstrap, packaging e pubblicazione
 ```
 

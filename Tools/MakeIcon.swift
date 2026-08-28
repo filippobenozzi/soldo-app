@@ -1,4 +1,5 @@
 // Renders the Soldo app icon (1024x1024 PNG) with CoreGraphics.
+// Monochrome, matching the app's ink-on-paper palette: a tilted coin bearing a euro sign.
 // Usage: swift Tools/MakeIcon.swift <output.png>
 
 import AppKit
@@ -6,101 +7,94 @@ import CoreGraphics
 import Foundation
 
 let size = 1024.0
-let outputPath = CommandLine.arguments.count > 1
-    ? CommandLine.arguments[1]
-    : "AppIcon.png"
+let outputPath = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "AppIcon.png"
 
 guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
       let ctx = CGContext(
-        data: nil,
-        width: Int(size),
-        height: Int(size),
-        bitsPerComponent: 8,
-        bytesPerRow: 0,
-        space: colorSpace,
+        data: nil, width: Int(size), height: Int(size),
+        bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace,
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
       )
 else { fatalError("Unable to create bitmap context") }
 
-func rgb(_ r: Double, _ g: Double, _ b: Double, _ a: Double = 1) -> CGColor {
-    CGColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: a)
+func grey(_ value: Double, _ alpha: Double = 1) -> CGColor {
+    CGColor(srgbRed: value, green: value, blue: value, alpha: alpha)
 }
 
-// Background: diagonal gradient, deep green to emerald.
-let backgroundGradient = CGGradient(
+// Paper background.
+ctx.setFillColor(grey(0.984))
+ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
+
+// Coin geometry: a circle seen at an angle, so the face is a tall ellipse.
+let centre = CGPoint(x: size * 0.485, y: size * 0.5)
+let radiusX = size * 0.230
+let radiusY = size * 0.370
+let depth = size * 0.150
+
+let faceCentre = CGPoint(x: centre.x - depth / 2, y: centre.y)
+let backCentre = CGPoint(x: centre.x + depth / 2, y: centre.y)
+
+func ellipseRect(at point: CGPoint) -> CGRect {
+    CGRect(x: point.x - radiusX, y: point.y - radiusY, width: radiusX * 2, height: radiusY * 2)
+}
+
+// The coin's thickness: the far ellipse plus the band joining it to the face.
+ctx.saveGState()
+ctx.setShadow(offset: CGSize(width: 0, height: -size * 0.012), blur: size * 0.05, color: grey(0, 0.28))
+
+let body = CGMutablePath()
+body.addEllipse(in: ellipseRect(at: backCentre))
+body.addRect(CGRect(
+    x: faceCentre.x, y: centre.y - radiusY,
+    width: backCentre.x - faceCentre.x, height: radiusY * 2
+))
+ctx.addPath(body)
+ctx.clip()
+
+let bodyGradient = CGGradient(
     colorsSpace: colorSpace,
-    colors: [rgb(16, 92, 60), rgb(39, 174, 96), rgb(72, 199, 116)] as CFArray,
-    locations: [0.0, 0.6, 1.0]
+    colors: [grey(0.10), grey(0.28), grey(0.13)] as CFArray,
+    locations: [0.0, 0.55, 1.0]
 )!
 ctx.drawLinearGradient(
-    backgroundGradient,
-    start: CGPoint(x: 0, y: size),
-    end: CGPoint(x: size, y: 0),
-    options: []
+    bodyGradient,
+    start: CGPoint(x: faceCentre.x, y: 0),
+    end: CGPoint(x: backCentre.x + radiusX, y: 0),
+    options: [.drawsBeforeStartLocation, .drawsAfterEndLocation]
 )
-
-// Soft highlight in the upper-left corner.
-let highlight = CGGradient(
-    colorsSpace: colorSpace,
-    colors: [rgb(255, 255, 255, 0.22), rgb(255, 255, 255, 0.0)] as CFArray,
-    locations: [0.0, 1.0]
-)!
-ctx.drawRadialGradient(
-    highlight,
-    startCenter: CGPoint(x: size * 0.26, y: size * 0.80), startRadius: 0,
-    endCenter: CGPoint(x: size * 0.26, y: size * 0.80), endRadius: size * 0.62,
-    options: []
-)
-
-// The coin.
-let coinCenter = CGPoint(x: size / 2, y: size / 2)
-let coinRadius = size * 0.305
-
-// Drop shadow under the coin.
-ctx.saveGState()
-ctx.setShadow(
-    offset: CGSize(width: 0, height: -size * 0.018),
-    blur: size * 0.06,
-    color: rgb(0, 40, 20, 0.45)
-)
-ctx.setFillColor(rgb(255, 255, 255))
-ctx.addArc(center: coinCenter, radius: coinRadius, startAngle: 0, endAngle: .pi * 2, clockwise: false)
-ctx.fillPath()
 ctx.restoreGState()
 
-// Inner rim.
-ctx.setStrokeColor(rgb(39, 174, 96, 0.30))
-ctx.setLineWidth(size * 0.020)
-ctx.addArc(center: coinCenter, radius: coinRadius * 0.865, startAngle: 0, endAngle: .pi * 2, clockwise: false)
-ctx.strokePath()
+// The face: white, with a thick dark rim.
+let rim = size * 0.060
+ctx.setFillColor(grey(0.99))
+ctx.fillEllipse(in: ellipseRect(at: faceCentre))
+ctx.setStrokeColor(grey(0.12))
+ctx.setLineWidth(rim)
+ctx.strokeEllipse(in: ellipseRect(at: faceCentre).insetBy(dx: rim / 2, dy: rim / 2))
 
-// Euro glyph, drawn as a text layer so it stays crisp.
+// Euro sign on the face, squeezed horizontally to sit on the tilted surface.
 let nsContext = NSGraphicsContext(cgContext: ctx, flipped: false)
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = nsContext
 
-let glyph = "€"
-let font = NSFont.systemFont(ofSize: size * 0.40, weight: .bold)
 let attributes: [NSAttributedString.Key: Any] = [
-    .font: font,
-    .foregroundColor: NSColor(srgbRed: 16 / 255, green: 92 / 255, blue: 60 / 255, alpha: 1),
+    .font: NSFont.systemFont(ofSize: size * 0.36, weight: .semibold),
+    .foregroundColor: NSColor(white: 0.16, alpha: 1),
 ]
-let attributed = NSAttributedString(string: glyph, attributes: attributes)
-let glyphSize = attributed.size()
-attributed.draw(
-    at: CGPoint(
-        x: coinCenter.x - glyphSize.width / 2,
-        y: coinCenter.y - glyphSize.height / 2 + size * 0.012
-    )
-)
+let glyph = NSAttributedString(string: "€", attributes: attributes)
+let glyphSize = glyph.size()
+
+ctx.saveGState()
+ctx.translateBy(x: faceCentre.x, y: faceCentre.y)
+ctx.scaleBy(x: 0.72, y: 1.0)
+glyph.draw(at: CGPoint(x: -glyphSize.width / 2, y: -glyphSize.height / 2 + size * 0.008))
+ctx.restoreGState()
 
 NSGraphicsContext.restoreGraphicsState()
 
 guard let image = ctx.makeImage() else { fatalError("Unable to render image") }
 let rep = NSBitmapImageRep(cgImage: image)
 rep.size = NSSize(width: size, height: size)
-guard let data = rep.representation(using: .png, properties: [:]) else {
-    fatalError("Unable to encode PNG")
-}
+guard let data = rep.representation(using: .png, properties: [:]) else { fatalError("Unable to encode PNG") }
 try data.write(to: URL(fileURLWithPath: outputPath))
 print("Wrote \(outputPath) (\(data.count) bytes)")

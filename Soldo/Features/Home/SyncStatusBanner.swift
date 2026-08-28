@@ -25,7 +25,7 @@ struct SyncStatusBanner: View {
             if !vault.isConnected {
                 banner(
                     symbol: "link.badge.plus",
-                    tint: SoldoTheme.warning,
+                    tint: SoldoTheme.ink,
                     title: "Collega il tuo vault Obsidian",
                     detail: "Scegli la cartella del vault per esportare le spese in Markdown.",
                     action: "Collega"
@@ -37,7 +37,7 @@ struct SyncStatusBanner: View {
                 case .syncing:
                     banner(
                         symbol: "arrow.triangle.2.circlepath",
-                        tint: SoldoTheme.accent,
+                        tint: SoldoTheme.ink,
                         title: "Sincronizzazione in corso…",
                         detail: vault.displayName ?? "Vault",
                         action: nil,
@@ -59,7 +59,7 @@ struct SyncStatusBanner: View {
                     if !pending.isEmpty {
                         banner(
                             symbol: "clock.arrow.circlepath",
-                            tint: SoldoTheme.warning,
+                            tint: SoldoTheme.ink,
                             title: "\(pending.count) \(pending.count == 1 ? "spesa da sincronizzare" : "spese da sincronizzare")",
                             detail: obsidian.configuration.destinationDescription,
                             action: "Sincronizza"
@@ -69,7 +69,7 @@ struct SyncStatusBanner: View {
                     } else if let last = coordinator.lastSyncDate {
                         banner(
                             symbol: "checkmark.circle.fill",
-                            tint: SoldoTheme.accent,
+                            tint: SoldoTheme.ink,
                             title: "Tutto sincronizzato su Obsidian",
                             detail: "Ultimo aggiornamento \(last.formatted(.relative(presentation: .named)))",
                             action: nil

@@ -31,6 +31,10 @@ struct WidgetSnapshot: Codable, Equatable {
     var pendingSyncCount: Int
     var vaultConnected: Bool
     var generatedAt: Date
+    /// Optional so snapshots written by an older build still decode.
+    var useCategoryColors: Bool?
+
+    var isColorful: Bool { useCategoryColors ?? false }
 
     static let empty = WidgetSnapshot(
         currencyCode: Money.defaultCurrencyCode,

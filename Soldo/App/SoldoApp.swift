@@ -8,6 +8,7 @@ struct SoldoApp: App {
     @State private var obsidianSettings = ObsidianSettingsStore.shared
     @State private var coordinator = SyncCoordinator.shared
     @State private var router = AppRouter.shared
+    @State private var locationService = LocationService.shared
 
     private let container = SoldoModelContainer.shared
 
@@ -19,8 +20,9 @@ struct SoldoApp: App {
                 .environment(obsidianSettings)
                 .environment(coordinator)
                 .environment(router)
+                .environment(locationService)
                 .preferredColorScheme(settings.appearance.colorScheme)
-                .tint(SoldoTheme.accent)
+                .tint(SoldoTheme.ink)
                 .task {
                     let context = container.mainContext
                     SoldoModelContainer.seedIfNeeded(context)

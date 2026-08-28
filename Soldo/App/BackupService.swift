@@ -47,6 +47,10 @@ enum BackupService {
         var accountID: UUID?
         var createdAt: Date
         var updatedAt: Date
+        var latitude: Double?
+        var longitude: Double?
+        var placeName: String?
+        var placeCategoryIdentifier: String?
     }
 
     static let currentVersion = 1
@@ -96,7 +100,11 @@ enum BackupService {
                     categoryID: $0.category?.id,
                     accountID: $0.account?.id,
                     createdAt: $0.createdAt,
-                    updatedAt: $0.updatedAt
+                    updatedAt: $0.updatedAt,
+                    latitude: $0.latitude,
+                    longitude: $0.longitude,
+                    placeName: $0.placeName,
+                    placeCategoryIdentifier: $0.placeCategoryIdentifier
                 )
             }
         )
@@ -187,6 +195,10 @@ enum BackupService {
             )
             expense.createdAt = dto.createdAt
             expense.updatedAt = dto.updatedAt
+            expense.latitude = dto.latitude
+            expense.longitude = dto.longitude
+            expense.placeName = dto.placeName
+            expense.placeCategoryIdentifier = dto.placeCategoryIdentifier
             context.insert(expense)
             result.expensesAdded += 1
         }
