@@ -6,15 +6,35 @@ struct AccountsView: View {
     @Environment(SyncCoordinator.self) private var coordinator
     @Query(sort: \PaymentAccount.sortIndex) private var accounts: [PaymentAccount]
 
-    @State private var editing: PaymentAccount?
-    @State private var isAdding = false
+    /// One binding, because two `.sheet` modifiers on the same view do not both
+    /// work — only one of them is ever honoured.
+    @State private var editor: Editor?
+
+    private enum Editor: Identifiable {
+        case new
+        case existing(PaymentAccount)
+
+        var id: String {
+            switch self {
+            case .new: "new"
+            case .existing(let account): account.id.uuidString
+            }
+        }
+
+        var account: PaymentAccount? {
+            switch self {
+            case .new: nil
+            case .existing(let account): account
+            }
+        }
+    }
 
     var body: some View {
         List {
             Section {
                 ForEach(accounts) { account in
                     Button {
-                        editing = account
+                        editor = .existing(account)
                     } label: {
                         HStack(spacing: 12) {
                             SymbolBadge(symbolName: account.symbolName, colorHex: account.colorHex)
@@ -36,12 +56,13 @@ struct AccountsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { isAdding = true } label: { Image(systemName: "plus") }
+                Button { editor = .new } label: { Image(systemName: "plus") }
             }
             ToolbarItem(placement: .topBarLeading) { EditButton() }
         }
-        .sheet(item: $editing) { AccountEditorView(account: $0) }
-        .sheet(isPresented: $isAdding) { AccountEditorView(account: nil) }
+        .sheet(item: $editor) { editor in
+            AccountEditorView(account: editor.account)
+        }
     }
 
     private func move(from source: IndexSet, to destination: Int) {

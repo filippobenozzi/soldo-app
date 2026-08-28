@@ -6,15 +6,35 @@ struct CategoriesView: View {
     @Environment(SyncCoordinator.self) private var coordinator
     @Query(sort: \SpendingCategory.sortIndex) private var categories: [SpendingCategory]
 
-    @State private var editing: SpendingCategory?
-    @State private var isAdding = false
+    /// One binding, because two `.sheet` modifiers on the same view do not both
+    /// work — only one of them is ever honoured.
+    @State private var editor: Editor?
+
+    private enum Editor: Identifiable {
+        case new
+        case existing(SpendingCategory)
+
+        var id: String {
+            switch self {
+            case .new: "new"
+            case .existing(let category): category.id.uuidString
+            }
+        }
+
+        var category: SpendingCategory? {
+            switch self {
+            case .new: nil
+            case .existing(let category): category
+            }
+        }
+    }
 
     var body: some View {
         List {
             Section {
                 ForEach(categories) { category in
                     Button {
-                        editing = category
+                        editor = .existing(category)
                     } label: {
                         HStack(spacing: 12) {
                             SymbolBadge(symbolName: category.symbolName, colorHex: category.colorHex)
@@ -42,15 +62,12 @@ struct CategoriesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { isAdding = true } label: { Image(systemName: "plus") }
+                Button { editor = .new } label: { Image(systemName: "plus") }
             }
             ToolbarItem(placement: .topBarLeading) { EditButton() }
         }
-        .sheet(item: $editing) { category in
-            CategoryEditorView(category: category)
-        }
-        .sheet(isPresented: $isAdding) {
-            CategoryEditorView(category: nil)
+        .sheet(item: $editor) { editor in
+            CategoryEditorView(category: editor.category)
         }
     }
 

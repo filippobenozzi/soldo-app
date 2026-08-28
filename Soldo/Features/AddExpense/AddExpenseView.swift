@@ -30,15 +30,31 @@ struct AddExpenseView: View {
     // Where the money was spent.
     @State private var place: DetectedPlace?
     @State private var nearbyPlaces: [DetectedPlace] = []
-    @State private var isPickingPlace = false
     @State private var isLocating = false
     @State private var userChoseCategory = false
 
     // Receipt scanning.
     @State private var isScanningReceipt = false
+    @State private var isPickingPhoto = false
     @State private var receiptPhoto: PhotosPickerItem?
     @State private var receiptPhase: ReceiptPhase = .idle
-    @State private var pendingScan: PendingScan?
+
+    /// One binding for every sheet this screen can show. Two separate `.sheet`
+    /// modifiers on the same view do not both work — only one of them ever wins —
+    /// which silently swallowed either the place picker or the receipt review.
+    @State private var activeSheet: ActiveSheet?
+
+    private enum ActiveSheet: Identifiable {
+        case placePicker
+        case receiptReview(PendingScan)
+
+        var id: String {
+            switch self {
+            case .placePicker: "place"
+            case .receiptReview(let pending): pending.id.uuidString
+            }
+        }
+    }
 
     /// `ReceiptScan` is a plain value, so it needs an identity to drive `.sheet(item:)`.
     private struct PendingScan: Identifiable {
@@ -129,26 +145,29 @@ struct AddExpenseView: View {
             )
             .ignoresSafeArea()
         }
+        .photosPicker(isPresented: $isPickingPhoto, selection: $receiptPhoto, matching: .images)
         .onChange(of: receiptPhoto) { _, item in
             guard let item else { return }
             Task { await processPickedPhoto(item) }
         }
-        .sheet(item: $pendingScan) { pending in
-            ReceiptReviewView(scan: pending.scan, currencyCode: settings.currencyCode) { result in
-                Task { await apply(result: result, from: pending.scan) }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .placePicker:
+                PlacePickerView(
+                    places: nearbyPlaces,
+                    selected: place,
+                    isLoading: isLocating,
+                    onSelect: { chosen in
+                        apply(place: chosen, overwriteMerchant: true)
+                        activeSheet = nil
+                    },
+                    onRefresh: { await refreshNearbyPlaces() }
+                )
+            case .receiptReview(let pending):
+                ReceiptReviewView(scan: pending.scan, currencyCode: settings.currencyCode) { result in
+                    Task { await apply(result: result, from: pending.scan) }
+                }
             }
-        }
-        .sheet(isPresented: $isPickingPlace) {
-            PlacePickerView(
-                places: nearbyPlaces,
-                selected: place,
-                isLoading: isLocating,
-                onSelect: { chosen in
-                    apply(place: chosen, overwriteMerchant: true)
-                    isPickingPlace = false
-                },
-                onRefresh: { await refreshNearbyPlaces() }
-            )
         }
         .confirmationDialog("Eliminare questa spesa?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
             Button("Elimina", role: .destructive, action: deleteExpense)
@@ -198,7 +217,12 @@ struct AddExpenseView: View {
                     Label("Inquadra lo scontrino", systemImage: "doc.viewfinder")
                 }
             }
-            PhotosPicker(selection: $receiptPhoto, matching: .images) {
+            // A PhotosPicker placed inside a Menu never presents: the menu tears
+            // its content down as it dismisses. A plain button flipping a flag,
+            // with the picker attached to the screen itself, does work.
+            Button {
+                isPickingPhoto = true
+            } label: {
                 Label("Scegli una foto", systemImage: "photo.on.rectangle")
             }
         } label: {
@@ -415,7 +439,7 @@ struct AddExpenseView: View {
                 } else if locationService.isAuthorized {
                     Button {
                         Haptics.tap()
-                        isPickingPlace = true
+                        activeSheet = .placePicker
                         Task { await refreshNearbyPlaces() }
                     } label: {
                         Image(systemName: "chevron.right")
@@ -572,11 +596,23 @@ struct AddExpenseView: View {
         receiptPhase = .reading
         defer { receiptPhoto = nil }
 
-        guard let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else {
-            receiptPhase = .failed("Non riesco a leggere quell'immagine.")
+        let data: Data?
+        do {
+            data = try await item.loadTransferable(type: Data.self)
+        } catch {
+            receiptPhase = .failed("Non riesco a caricare la foto: \(error.localizedDescription)")
             return
         }
+
+        guard let data else {
+            receiptPhase = .failed("La foto non è sul dispositivo. Se è solo su iCloud, aprila una volta in Foto e riprova.")
+            return
+        }
+        guard let image = UIImage(data: data) else {
+            receiptPhase = .failed("Formato immagine non supportato.")
+            return
+        }
+
         await process(images: [image])
     }
 
@@ -591,7 +627,7 @@ struct AddExpenseView: View {
             // Always go through review: it shows what was actually read, which is
             // both safer than filling silently and the only way to tell a bad scan
             // from a bad photo.
-            pendingScan = PendingScan(scan: scan)
+            activeSheet = .receiptReview(PendingScan(scan: scan))
         } catch {
             receiptPhase = .failed(error.localizedDescription)
         }
