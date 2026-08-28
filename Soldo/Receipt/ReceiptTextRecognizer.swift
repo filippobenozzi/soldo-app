@@ -35,17 +35,31 @@ enum ReceiptTextRecognizer {
             // Vision's request and handler are built inside the work item so neither
             // has to cross a concurrency boundary.
             DispatchQueue.global(qos: .userInitiated).async {
-                let request = VNRecognizeTextRequest()
-                request.recognitionLevel = .accurate
-                request.recognitionLanguages = ["it-IT", "en-US"]
-                // Receipts are full of codes and abbreviations that autocorrection mangles.
-                request.usesLanguageCorrection = false
-
                 let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
-                do {
+
+                func run(minimumTextHeight: Float) throws -> [String] {
+                    let request = VNRecognizeTextRequest()
+                    request.recognitionLevel = .accurate
+                    request.recognitionLanguages = ["it-IT", "en-US"]
+                    // Receipts are full of codes and abbreviations that autocorrection mangles.
+                    request.usesLanguageCorrection = false
+                    // Vision ignores text shorter than this fraction of the image
+                    // height, and its 1/32 default is far too tall for receipt print
+                    // in a full-frame photo — that alone returned nothing at all.
+                    request.minimumTextHeight = minimumTextHeight
                     try handler.perform([request])
-                    let observations = request.results ?? []
-                    continuation.resume(returning: assembleLines(from: observations))
+                    return assembleLines(from: request.results ?? [])
+                }
+
+                do {
+                    var lines = try run(minimumTextHeight: 0.005)
+                    // A distant or wrinkled shot can still come back nearly empty;
+                    // one more pass with no floor at all is cheap.
+                    if lines.count < 4 {
+                        let retry = try run(minimumTextHeight: 0.0)
+                        if retry.count > lines.count { lines = retry }
+                    }
+                    continuation.resume(returning: lines)
                 } catch {
                     continuation.resume(throwing: RecognizerError.recognitionFailed(error.localizedDescription))
                 }

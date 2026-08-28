@@ -27,9 +27,10 @@ Soldo è un progetto indipendente, non affiliato con SyncSpend né con i suoi au
 
 - **Registrazione rapida** — tastierino numerico dedicato, categorie e conti a portata di pollice, data con scorciatoie Oggi/Ieri.
 - **Sincronizzazione Obsidian** in quattro formati, con anteprima dal vivo nelle impostazioni.
-- **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli. Dal nome e dalla via stampati Soldo risale al posto, quindi alle coordinate e alla categoria.
+- **Scansione dello scontrino** — inquadri, e importo, negozio e data si compilano da soli, dopo una schermata di conferma che mostra cosa è stato letto. Dal nome e dalla via stampati Soldo risale al posto, quindi alle coordinate e alla categoria.
 - **Luogo automatico** — quando apri una nuova spesa, Soldo riconosce il negozio in cui ti trovi, lo propone come esercente e sceglie la categoria dal tipo di posto.
-- **Widget** — totale del mese e budget (piccolo, medio), ultime spese (medio, grande), widget per schermata di blocco e controllo del Centro di Controllo per l'inserimento rapido (iOS 18+).
+- **Spesa veloce** — dal Centro di Controllo, dalla schermata di blocco o dal tasto Azione: iOS chiede l'importo e la spesa viene registrata **senza aprire l'app**.
+- **Widget** — totale del mese e budget (piccolo, medio), ultime spese (medio, grande) e widget per la schermata di blocco.
 - **Comandi rapidi** — azioni `Aggiungi spesa`, `Apri nuova spesa`, `Totale speso`, `Sincronizza`, utilizzabili con Siri, Tocco posteriore, tasto Azione e automazioni Apple Pay.
 - **Analisi** — grafici per giorno, per mese e per categoria, confronto col periodo precedente e proiezione di fine mese.
 - **Budget mensile** opzionale, con anello di avanzamento su Home e nei widget.
@@ -48,7 +49,8 @@ scuro tutto si inverte. Le categorie hanno comunque un colore, usato solo se att
 **Scansione.** Dal pulsante in alto a destra della schermata di inserimento puoi
 inquadrare uno scontrino o scegliere una foto. Soldo usa lo scanner di sistema
 (ritaglio e raddrizzamento automatici) e poi Vision per il riconoscimento del testo,
-in italiano e inglese.
+in italiano e inglese, abbassando la soglia di altezza minima del testo — quella
+predefinita è pensata per cartelli, non per la stampa fitta di uno scontrino.
 
 Il parser ricostruisce le righe stampate unendo i frammenti che stanno alla stessa
 altezza — è questo che gli permette di leggere `TOTALE ... 12,50` come una riga sola —
@@ -61,6 +63,11 @@ e poi cerca:
 - **il negozio**, dalle prime righe, scartando indirizzi, partite IVA e diciture fiscali;
 - **la data e l'ora**, in formato italiano o americano;
 - **via, CAP e città**, e la partita IVA.
+
+**Conferma prima di compilare.** Il risultato non finisce dritto nei campi: appare
+una schermata che mostra l'importo trovato, il negozio, la data e — in fondo — tutto
+il testo riconosciuto. Se il totale è sbagliato, tocchi una delle altre cifre lette
+sullo scontrino; se non è stato letto nulla, lo vedi subito e capisci perché.
 
 **Dal negozio al luogo.** Con nome e via, Soldo interroga Apple Maps e ottiene il
 posto: coordinate, categoria del punto di interesse e quindi la categoria di spesa.
@@ -196,10 +203,15 @@ AltStore o Sideloadly.
   **ogni estensione conta come un'app**. Soldo con il widget ne occupa quindi due.
   Per questo ogni release contiene anche **`Soldo-no-widget.ipa`**: stessa app, senza
   estensione widget, un solo slot.
-- Il widget legge i dati tramite l'**App Group** `group.im.filippo.soldo`. Se il
-  metodo di sideloading che usi non riesce a registrarlo, l'app continua a
-  funzionare normalmente e solo il widget resta vuoto.
-- Il controllo «Nuova spesa» del Centro di Controllo richiede iOS 18 o successivo.
+- L'**App Group** `group.im.filippo.soldo` è usato sia dal widget sia dal database,
+  così la spesa veloce può scrivere senza avviare l'app. Se il tuo metodo di
+  sideloading non riesce a registrarlo, l'app continua a funzionare normalmente: il
+  database resta nel contenitore dell'app, il widget resta vuoto e la spesa veloce
+  ripiega sull'apertura della schermata di inserimento.
+- Passando dalla 1.1.0 alla 1.2.0 il database viene **copiato** nel contenitore
+  condiviso: l'originale non viene mai cancellato, e se la copia non riesce Soldo
+  continua a usare quello di prima.
+- I controlli del Centro di Controllo richiedono iOS 18 o successivo.
 
 ## Compilare in locale
 
@@ -245,6 +257,16 @@ release con le due IPA e aggiorna da sola `altstore/source.json`, così AltStore
 subito l'aggiornamento.
 
 ## Automazioni
+
+Soldo installa due controlli per il Centro di Controllo, la schermata di blocco e il
+tasto Azione:
+
+- **Spesa veloce** — iOS chiede l'importo con il suo prompt e la spesa viene salvata
+  subito, senza aprire l'app. Categoria, conto e valuta sono quelli predefiniti.
+- **Nuova spesa** — apre invece la schermata completa, per quando servono categoria,
+  nota o la scansione dello scontrino.
+
+Le stesse azioni compaiono tenendo premuta l'icona dell'app e in Comandi rapidi.
 
 L'azione **Aggiungi spesa** accetta importo, esercente, categoria, conto, nota e data,
 e salva senza aprire l'app. Per registrare automaticamente i pagamenti Apple Pay:

@@ -38,6 +38,13 @@ struct AddExpenseView: View {
     @State private var isScanningReceipt = false
     @State private var receiptPhoto: PhotosPickerItem?
     @State private var receiptPhase: ReceiptPhase = .idle
+    @State private var pendingScan: PendingScan?
+
+    /// `ReceiptScan` is a plain value, so it needs an identity to drive `.sheet(item:)`.
+    private struct PendingScan: Identifiable {
+        let id = UUID()
+        let scan: ReceiptScan
+    }
 
     @FocusState private var focusedField: Field?
 
@@ -75,7 +82,6 @@ struct AddExpenseView: View {
                     VStack(spacing: 18) {
                         amountDisplay
                         receiptBanner
-                        categoryPicker
                         detailsCard
                         placeCard
                         if editingExpense != nil { deleteButton }
@@ -126,6 +132,11 @@ struct AddExpenseView: View {
         .onChange(of: receiptPhoto) { _, item in
             guard let item else { return }
             Task { await processPickedPhoto(item) }
+        }
+        .sheet(item: $pendingScan) { pending in
+            ReceiptReviewView(scan: pending.scan, currencyCode: settings.currencyCode) { result in
+                Task { await apply(result: result, from: pending.scan) }
+            }
         }
         .sheet(isPresented: $isPickingPlace) {
             PlacePickerView(
@@ -244,36 +255,67 @@ struct AddExpenseView: View {
         }
     }
 
-    private var categoryPicker: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Categoria")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
+    private var selectedCategory: SpendingCategory? {
+        categories.first { $0.id == selectedCategoryID }
+    }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(categories) { category in
-                        chip(
-                            title: category.name,
-                            symbol: category.symbolName,
-                            hex: category.colorHex,
-                            isSelected: selectedCategoryID == category.id
-                        ) {
-                            Haptics.tap()
-                            userChoseCategory = true
-                            selectedCategoryID = selectedCategoryID == category.id ? nil : category.id
-                        }
-                    }
-                }
-                .padding(.horizontal, 2)
-                .padding(.vertical, 2)
-            }
-            .scrollClipDisabled()
-        }
+    private var selectedAccount: PaymentAccount? {
+        accounts.first { $0.id == selectedAccountID }
     }
 
     private var detailsCard: some View {
         VStack(spacing: 0) {
+            selectRow(
+                title: "Categoria",
+                symbol: selectedCategory?.symbolName ?? "tag",
+                hex: selectedCategory?.colorHex ?? "596275",
+                value: selectedCategory?.name
+            ) {
+                Button {
+                    userChoseCategory = true
+                    selectedCategoryID = nil
+                } label: {
+                    Label("Nessuna categoria", systemImage: "minus.circle")
+                }
+                Divider()
+                ForEach(categories) { category in
+                    Button {
+                        Haptics.tap()
+                        userChoseCategory = true
+                        selectedCategoryID = category.id
+                    } label: {
+                        Label(category.name, systemImage: category.symbolName)
+                    }
+                }
+            }
+
+            if !accounts.isEmpty {
+                Divider()
+                selectRow(
+                    title: "Pagato con",
+                    symbol: selectedAccount?.symbolName ?? "creditcard",
+                    hex: selectedAccount?.colorHex ?? "596275",
+                    value: selectedAccount?.name
+                ) {
+                    Button {
+                        selectedAccountID = nil
+                    } label: {
+                        Label("Nessun conto", systemImage: "minus.circle")
+                    }
+                    Divider()
+                    ForEach(accounts) { account in
+                        Button {
+                            Haptics.tap()
+                            selectedAccountID = account.id
+                        } label: {
+                            Label(account.name, systemImage: account.symbolName)
+                        }
+                    }
+                }
+            }
+
+            Divider()
+
             HStack(spacing: 12) {
                 Image(systemName: "storefront")
                     .foregroundStyle(.secondary)
@@ -296,35 +338,40 @@ struct AddExpenseView: View {
                     .focused($focusedField, equals: .note)
             }
             .padding(.vertical, 12)
-
-            if !accounts.isEmpty {
-                Divider()
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Pagato con")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(accounts) { account in
-                                chip(
-                                    title: account.name,
-                                    symbol: account.symbolName,
-                                    hex: account.colorHex,
-                                    isSelected: selectedAccountID == account.id
-                                ) {
-                                    Haptics.tap()
-                                    selectedAccountID = selectedAccountID == account.id ? nil : account.id
-                                }
-                            }
-                        }
-                        .padding(.vertical, 2)
-                    }
-                    .scrollClipDisabled()
-                }
-                .padding(.vertical, 12)
-            }
         }
         .soldoCard()
+    }
+
+    /// A row that opens a menu — the same shape as a Settings picker, so the sheet
+    /// stays compact however many categories there are.
+    private func selectRow<Content: View>(
+        title: String,
+        symbol: String,
+        hex: String,
+        value: String?,
+        @ViewBuilder options: () -> Content
+    ) -> some View {
+        Menu {
+            options()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .foregroundStyle(value == nil ? Color.secondary : SoldoTheme.tint(hex))
+                    .frame(width: 22)
+                Text(title)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 8)
+                Text(value ?? "Nessuna")
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .menuOrder(.fixed)
     }
 
     @ViewBuilder
@@ -434,24 +481,6 @@ struct AddExpenseView: View {
         .background(.bar)
     }
 
-    private func chip(title: String, symbol: String, hex: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        let tint = SoldoTheme.tint(hex)
-        return Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.caption)
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .foregroundStyle(isSelected ? SoldoTheme.card : tint)
-            .background(isSelected ? SoldoTheme.ink : SoldoTheme.badge, in: Capsule())
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: - Amount entry
 
     private var displayAmount: String {
@@ -558,38 +587,46 @@ struct AddExpenseView: View {
         do {
             let lines = try await ReceiptTextRecognizer.recognizeLines(in: image)
             let scan = ReceiptParser.parse(lines: lines)
-            guard !scan.isEmpty else {
-                receiptPhase = .failed("Non ho riconosciuto importo né negozio. Riprova con più luce.")
-                return
-            }
-            await apply(scan: scan)
+            receiptPhase = .idle
+            // Always go through review: it shows what was actually read, which is
+            // both safer than filling silently and the only way to tell a bad scan
+            // from a bad photo.
+            pendingScan = PendingScan(scan: scan)
         } catch {
             receiptPhase = .failed(error.localizedDescription)
         }
     }
 
-    private func apply(scan: ReceiptScan) async {
+    private func apply(result: ReceiptReviewResult, from scan: ReceiptScan) async {
         var filled: [String] = []
 
-        if let total = scan.total, total > 0 {
-            amountText = Money.machineString(total).replacingOccurrences(of: ".", with: ",")
+        if let amount = result.amount, amount > 0 {
+            amountText = Money.machineString(amount).replacingOccurrences(of: ".", with: ",")
             filled.append("importo")
         }
-        if let scanned = scan.merchant, !scanned.isEmpty {
-            merchant = scanned
+        if !result.merchant.isEmpty {
+            merchant = result.merchant
             filled.append("negozio")
         }
-        if let scannedDate = scan.date {
+        if let scannedDate = result.date {
             date = scannedDate
             filled.append("data")
         }
 
-        receiptPhase = .filled(filled.isEmpty ? "Nessun campo riconosciuto" : filled.joined(separator: ", "))
+        receiptPhase = .filled(filled.isEmpty ? "Nessun campo compilato" : filled.joined(separator: ", "))
         Haptics.success()
 
         // Turn the printed name and street into a real place, so the expense gets
         // coordinates and a category just like a GPS-detected one.
-        guard let query = scan.placeQuery else { return }
+        var query = scan.placeQuery
+        if query == nil, !result.merchant.isEmpty {
+            query = [result.merchant, scan.street, scan.locality]
+                .compactMap { $0 }
+                .filter { !$0.isEmpty }
+                .joined(separator: ", ")
+        }
+        guard let query else { return }
+
         if let resolved = await locationService.place(matching: query, near: locationService.lastLocation) {
             apply(place: resolved, overwriteMerchant: false)
             receiptPhase = .filled((filled + ["luogo"]).joined(separator: ", "))

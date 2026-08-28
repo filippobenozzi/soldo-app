@@ -61,7 +61,9 @@ struct ObsidianSettingsView: View {
 
             Section {
                 Toggle("Sincronizza automaticamente", isOn: $store.configuration.autoSync)
+                    .soldoSwitch()
                 Toggle("Scrivi anche un backup JSON", isOn: $store.configuration.writeBackupFile)
+                    .soldoSwitch()
                 if configuration.writeBackupFile {
                     TextField("Nome del backup", text: $store.configuration.backupFileName)
                         .autocorrectionDisabled()
@@ -194,6 +196,7 @@ struct ObsidianSettingsView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                 Toggle("Includi corpo della nota", isOn: $store.configuration.includeNoteBody)
+                    .soldoSwitch()
                 TagsField(tags: $store.configuration.frontMatterTags)
             } header: {
                 Text("Percorso e contenuto")

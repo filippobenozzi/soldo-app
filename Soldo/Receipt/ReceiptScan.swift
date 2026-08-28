@@ -9,6 +9,9 @@ struct ReceiptScan: Equatable {
     var locality: String?
     var vatNumber: String?
     var lines: [String] = []
+    /// Every money-looking figure on the receipt, largest first — what the review
+    /// sheet offers when the automatic pick is wrong.
+    var candidateAmounts: [Decimal] = []
 
     var isEmpty: Bool {
         merchant == nil && total == nil && date == nil

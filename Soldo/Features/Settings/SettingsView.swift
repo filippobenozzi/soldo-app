@@ -80,11 +80,14 @@ struct SettingsView: View {
                     }
 
                     Toggle("Feedback aptico", isOn: $settings.hapticsEnabled)
+                        .soldoSwitch()
                 }
 
                 Section {
                     Toggle("Rileva il luogo", isOn: $settings.detectLocation)
+                        .soldoSwitch()
                     Toggle("Categoria dal tipo di luogo", isOn: $settings.autoCategoryFromPlace)
+                        .soldoSwitch()
                         .disabled(!settings.detectLocation)
 
                     LabeledContent("Autorizzazione", value: locationService.statusDescription)
@@ -108,6 +111,7 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Icone a colori", isOn: $settings.useCategoryColors)
+                        .soldoSwitch()
                         .onChange(of: settings.useCategoryColors) { _, _ in
                             coordinator.refreshWidgetSnapshot(context: context)
                         }

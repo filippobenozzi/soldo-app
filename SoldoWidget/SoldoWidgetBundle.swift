@@ -8,6 +8,7 @@ struct SoldoWidgetBundle: WidgetBundle {
         RecentExpensesWidget()
         if #available(iOS 18.0, *) {
             QuickAddControl()
+            OpenSoldoControl()
         }
     }
 }

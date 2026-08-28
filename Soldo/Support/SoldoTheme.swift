@@ -28,6 +28,15 @@ enum SoldoTheme {
             : UIColor(red: 0.929, green: 0.929, blue: 0.929, alpha: 1)
     })
 
+    /// A switch always draws a white knob, so tinting its track pure white makes
+    /// the whole control vanish in dark mode. Switches get their own tone instead:
+    /// black on paper, mid grey on black.
+    static let switchTint = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 0.58, alpha: 1)
+            : UIColor(white: 0.0, alpha: 1)
+    })
+
     /// Hairline separators inside cards.
     static let separator = Color(uiColor: .separator)
 
@@ -61,6 +70,11 @@ enum SoldoTheme {
 }
 
 extension View {
+    /// Applies the switch tone. Every `Toggle` in the app uses it.
+    func soldoSwitch() -> some View {
+        tint(SoldoTheme.switchTint)
+    }
+
     /// The rounded white surface used for every card in the app.
     func soldoCard(padding: CGFloat = SoldoTheme.cardPadding) -> some View {
         self

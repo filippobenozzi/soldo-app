@@ -77,21 +77,6 @@ final class Expense {
         latitude != nil && longitude != nil
     }
 
-    /// Applies a resolved place to the expense.
-    func apply(place: DetectedPlace?) {
-        guard let place else {
-            latitude = nil
-            longitude = nil
-            placeName = nil
-            placeCategoryIdentifier = nil
-            return
-        }
-        latitude = place.latitude
-        longitude = place.longitude
-        placeName = place.name
-        placeCategoryIdentifier = place.categoryIdentifier
-    }
-
     var displayTitle: String {
         if !merchant.trimmingCharacters(in: .whitespaces).isEmpty { return merchant }
         if let name = category?.name, !name.isEmpty { return name }

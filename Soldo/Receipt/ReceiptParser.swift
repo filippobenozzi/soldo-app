@@ -77,6 +77,12 @@ enum ReceiptParser {
         var scan = ReceiptScan()
         scan.lines = lines
         scan.total = findTotal(in: lines)
+        scan.candidateAmounts = Array(
+            Set(lines.flatMap(amounts(in:)))
+                .filter { $0 > 0 }
+                .sorted(by: >)
+                .prefix(14)
+        ).sorted(by: >)
         scan.merchant = findMerchant(in: lines)
         scan.date = findDate(in: lines)
         scan.vatNumber = firstMatch(vatPattern, in: lines, group: 1)

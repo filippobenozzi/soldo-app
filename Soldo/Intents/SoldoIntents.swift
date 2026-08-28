@@ -209,6 +209,15 @@ struct SpendingTotalIntent: AppIntent {
 struct SoldoShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
+            intent: QuickAddExpenseIntent(),
+            phrases: [
+                "Spesa veloce con \(.applicationName)",
+                "Quick expense in \(.applicationName)",
+            ],
+            shortTitle: "Spesa veloce",
+            systemImageName: "bolt.fill"
+        )
+        AppShortcut(
             intent: AddExpenseIntent(),
             phrases: [
                 "Aggiungi una spesa a \(.applicationName)",

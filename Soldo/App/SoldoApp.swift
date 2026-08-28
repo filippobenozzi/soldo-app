@@ -12,6 +12,17 @@ struct SoldoApp: App {
 
     private let container = SoldoModelContainer.shared
 
+    init() {
+        // Quick-add can run in this process when iOS launches the app in the
+        // background for the intent. When it does, finish the job properly:
+        // write the vault and refresh the widget.
+        QuickAddHooks.didSaveExpense = { _ in
+            let context = SoldoModelContainer.shared.mainContext
+            await SyncCoordinator.shared.sync(context: context)
+            SyncCoordinator.shared.refreshWidgetSnapshot(context: context)
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()

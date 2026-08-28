@@ -100,6 +100,7 @@ struct CategoryEditorView: View {
                 if category != nil {
                     Section {
                         Toggle("Archivia", isOn: $isArchived)
+                            .soldoSwitch()
                     } footer: {
                         Text("Le categorie archiviate non compaiono più quando registri una spesa, ma restano sullo storico.")
                     }

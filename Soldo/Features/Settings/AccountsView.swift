@@ -90,6 +90,7 @@ struct AccountEditorView: View {
                 if account != nil {
                     Section {
                         Toggle("Archivia", isOn: $isArchived)
+                            .soldoSwitch()
                     }
                 }
 
