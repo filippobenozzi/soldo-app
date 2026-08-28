@@ -1,8 +1,8 @@
 {
-  "name": "Soldo",
+  "name": "Schei",
   "identifier": "im.filippo.soldo.source",
   "subtitle": "Spese veloci, sincronizzate con Obsidian",
-  "description": "Sorgente ufficiale di Soldo: un tracciatore di spese minimale che scrive le tue spese direttamente nel vault Obsidian, in Markdown. Nessun account, nessun abbonamento, nessun tracciamento.",
+  "description": "Sorgente ufficiale di Schei: un tracciatore di spese minimale che scrive le tue spese direttamente nel vault Obsidian, in Markdown. Nessun account, nessun abbonamento, nessun tracciamento.",
   "website": "https://github.com/filippobenozzi/soldo-app",
   "iconURL": "https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/icon.png",
   "tintColor": "1C1C1E",
@@ -12,11 +12,11 @@
   ],
   "apps": [
     {
-      "name": "Soldo",
+      "name": "Schei",
       "bundleIdentifier": "im.filippo.soldo",
       "developerName": "Filippo Benozzi",
       "subtitle": "Spese in Markdown, nel tuo vault",
-      "localizedDescription": "Soldo è un modo veloce e minimale per segnare le spese.\n\n• Sincronizzazione con Obsidian — scegli la cartella del tuo vault e Soldo ci scrive le spese come normali file Markdown. Quattro formati: una nota per spesa con front matter YAML (pronta per Dataview), una tabella in nota unica, una riga nella nota giornaliera, oppure un CSV.\n• Scansione dello scontrino — inquadri e importo, negozio e data si compilano da soli. Dal nome e dalla via stampati Soldo risale al posto, quindi alle coordinate e alla categoria di spesa.\n• Luogo automatico — con il tuo permesso riconosce il negozio in cui ti trovi e sceglie la categoria dal tipo di posto. Le coordinate finiscono nel vault, pronte per i plugin di mappa di Obsidian.\n• Registrazione rapida — tastierino dedicato, categorie a portata di pollice, due secondi per spesa.\n• Widget — totale del mese, budget e ultime spese sulla schermata Home, sulla schermata di blocco e nel Centro di Controllo.\n• Comandi rapidi — azione «Aggiungi spesa» da usare col Tocco posteriore, col tasto Azione o subito dopo un pagamento con Apple Pay.\n• Analisi — grafici per giorno, mese e categoria, con proiezione di fine mese.\n\nIn bianco e nero, come deve essere. Nessun account, nessun abbonamento, nessuna pubblicità, nessun tracciamento: i dati restano sul telefono e nel tuo vault.",
+      "localizedDescription": "Schei è un modo veloce e minimale per segnare le spese.\n\n• Sincronizzazione con Obsidian — scegli la cartella del tuo vault e Schei ci scrive le spese come normali file Markdown. Quattro formati: una nota per spesa con front matter YAML (pronta per Dataview), una tabella in nota unica, una riga nella nota giornaliera, oppure un CSV.\n• Scansione dello scontrino — inquadri e importo, negozio e data si compilano da soli, dopo una schermata di conferma che mostra cosa è stato letto. Dal nome e dalla via stampati Schei risale al posto, quindi alle coordinate e alla categoria di spesa.\n• Luogo automatico — con il tuo permesso riconosce il negozio in cui ti trovi e sceglie la categoria dal tipo di posto. Le coordinate finiscono nel vault, pronte per i plugin di mappa di Obsidian.\n• Spesa veloce — un controllo del Centro di Controllo registra con un tocco l'importo che hai scelto, senza aprire l'app.\n• Registrazione rapida — tastierino dedicato, categorie a portata di pollice, due secondi per spesa.\n• Widget — totale del mese, budget e ultime spese sulla schermata Home e su quella di blocco.\n• Analisi — grafici per giorno, mese e categoria, con proiezione di fine mese.\n\nIn bianco e nero, come deve essere. Nessun account, nessun abbonamento, nessuna pubblicità, nessun tracciamento: i dati restano sul telefono e nel tuo vault.",
       "iconURL": "https://raw.githubusercontent.com/filippobenozzi/soldo-app/main/altstore/icon.png",
       "tintColor": "1C1C1E",
       "category": "finance",
